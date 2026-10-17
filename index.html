@@ -1,0 +1,2184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainCare AI — Sức khỏe số & thói quen học tập</title>
+    <meta name="description" content="BrainCare AI hỗ trợ học sinh quan sát thói quen sử dụng nội dung số, ghi nhật ký học tập và xây dựng thói quen tập trung. Không dùng để chẩn đoán y khoa.">
+    <meta name="theme-color" content="#667eea">
+    <style>
+        /* ===== CƠ BẢN ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --p: #667eea;
+            --i: #764ba2;
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --text: #374151;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI','Google Sans',Roboto,sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            font: inherit
+        }
+
+        /* ===== HIỆU ỨNG NÚT TÍM ===== */
+        .btn, .suggest-btn, .send-btn, .nav-settings, .mood-btn,
+        .auth-tabs button, .history-new, .history-delete, .menu-toggle {
+            border: 1.5px solid rgba(118,75,162,.28);
+            transition: transform .22s ease, box-shadow .22s ease,
+                        border-color .22s ease, background .22s ease, color .22s ease;
+        }
+
+        .btn:hover, .suggest-btn:hover, .send-btn:hover, .nav-settings:hover,
+        .mood-btn:hover, .auth-tabs button:hover, .history-new:hover,
+        .menu-toggle:hover {
+            transform: translateY(-3px);
+            border-color: rgba(118,75,162,.72);
+            box-shadow: 0 8px 20px rgba(118,75,162,.22),
+                        0 0 0 3px rgba(118,75,162,.08);
+        }
+
+        .btn:active, .suggest-btn:active, .send-btn:active, .nav-settings:active,
+        .mood-btn:active, .auth-tabs button:active, .history-new:active,
+        .history-delete:active, .menu-toggle:active {
+            transform: translateY(-1px) scale(.98);
+        }
+
+        .btn-primary, .send-btn {
+            border-color: rgba(118,75,162,.65);
+        }
+
+        .btn-primary:hover, .send-btn:hover {
+            box-shadow: 0 10px 24px rgba(118,75,162,.30),
+                        0 0 0 3px rgba(118,75,162,.10);
+        }
+
+        /* Thẻ có thể bấm cũng nổi nhẹ khi rê chuột */
+        .feature-card:hover, .card.clickable-card:hover, .tool-card:hover {
+            border-color: rgba(118,75,162,.38);
+        }
+
+        /* ===== THANH ĐIỀU HƯỚNG ===== */
+        nav {
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 0 rgba(0,0,0,.06);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg,var(--p),var(--i));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu {
+            display: flex;
+            gap: 4px
+        }
+
+            .menu a {
+                padding: 10px 14px;
+                border-radius: 12px;
+                color: #4b5563;
+                font-size: 14.5px;
+                font-weight: 500;
+                border: 1.5px solid transparent;
+                transition: transform .22s ease, box-shadow .22s ease,
+                            border-color .22s ease, background .22s ease, color .22s ease;
+            }
+
+                .menu a:hover {
+                    transform: translateY(-3px);
+                    background: linear-gradient(135deg,rgba(102,126,234,.13),rgba(118,75,162,.12));
+                    color: var(--p);
+                    border-color: rgba(118,75,162,.62);
+                    box-shadow: 0 8px 18px rgba(118,75,162,.18),
+                                0 0 0 3px rgba(118,75,162,.06);
+                }
+
+                .menu a.active {
+                    background: linear-gradient(135deg,rgba(102,126,234,.14),rgba(118,75,162,.12));
+                    color: var(--p);
+                    border-color: rgba(118,75,162,.24);
+                }
+
+                .menu a:active {
+                    transform: translateY(-1px) scale(.99);
+                }
+
+        .menu-toggle {
+            display: none;
+            font-size: 24px;
+            background: rgba(255,255,255,.9);
+            padding: 8px 12px;
+            border-radius: 12px;
+            line-height: 1;
+        }
+
+        /* ===== TRANG ===== */
+        section {
+            display: none;
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+            section.active {
+                display: block;
+                animation: fadeInUp .5s ease
+            }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 24px;
+            color: #111827
+        }
+
+        h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #1f2937
+        }
+
+        /* ===== THÀNH PHẦN DÙNG CHUNG ===== */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,.07);
+            border: 1px solid #f3f4f6;
+            transition: .3s;
+        }
+
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 20px rgba(102,126,234,.25)
+            }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 26px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: .3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg,var(--p),var(--i));
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(102,126,234,.3);
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102,126,234,.4)
+            }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626
+        }
+
+            .btn-danger:hover {
+                background: #fecaca
+            }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px
+        }
+
+        .form-group {
+            margin-bottom: 20px
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text)
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 15px;
+            transition: .2s;
+            font: inherit;
+        }
+
+        :focus {
+            outline: none;
+            border-color: var(--p);
+            box-shadow: 0 0 0 3px rgba(102,126,234,.15)
+        }
+
+        /* ===== TRANG CHỦ ===== */
+        .hero {
+            text-align: center;
+            padding: 30px 10px 50px
+        }
+
+            .hero h1 {
+                font-size: 40px;
+                margin-bottom: 16px;
+                background: linear-gradient(135deg,var(--p),var(--i));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .hero p {
+                font-size: 18px;
+                color: var(--text-light);
+                margin-bottom: 32px;
+                max-width: 650px;
+                margin: 0 auto
+            }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+            gap: 20px
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 32px 24px
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 14px
+        }
+
+        /* ===== KẾT QUẢ ĐÁNH GIÁ ===== */
+        .result-box {
+            margin-top: 24px;
+            padding: 24px;
+            border-radius: 16px;
+            display: none;
+            animation: fadeInUp .4s ease
+        }
+
+        .result-good {
+            background: #f0fdf4;
+            border-left: 4px solid var(--success)
+        }
+
+        .result-warning {
+            background: #fefce8;
+            border-left: 4px solid var(--warning)
+        }
+
+        .result-danger {
+            background: #fef2f2;
+            border-left: 4px solid var(--danger)
+        }
+
+        /* ===== NHẬT KÝ ===== */
+        .journal-form {
+            background: linear-gradient(135deg,#eff3ff,#faf5ff);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .journal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+            .journal-grid.full {
+                grid-template-columns: 1fr
+            }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical
+        }
+
+        .mood-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px
+        }
+
+        .mood-btn {
+            font-size: 26px;
+            padding: 8px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            opacity: .6;
+            transition: .2s;
+            background: none;
+        }
+
+            .mood-btn.active, .mood-btn:hover {
+                opacity: 1;
+                border-color: var(--p);
+                background: #eef2ff
+            }
+
+        .journal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px
+        }
+
+        .journal-entry {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            border-left: 4px solid var(--p);
+            box-shadow: 0 2px 8px rgba(0,0,0,.05);
+            animation: fadeInUp .3s ease;
+        }
+
+        .entry-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px
+        }
+
+        .entry-date {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 15px
+        }
+
+        .entry-mood {
+            font-size: 24px
+        }
+
+        .entry-meta {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: var(--text-light)
+        }
+
+        .entry-note {
+            margin-top: 8px;
+            white-space: pre-wrap
+        }
+
+        /* ===== THỐNG KÊ ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+            gap: 20px;
+            margin-bottom: 24px
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,.07);
+            transition: .3s;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-4px)
+            }
+
+            .stat-card.highlight {
+                background: linear-gradient(135deg,var(--p),var(--i));
+                color: #fff
+            }
+
+        .stat-num {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 8px 0
+        }
+
+        .progress-bar-wrap {
+            height: 12px;
+            background: var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 12px
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg,var(--p),var(--i));
+            width: 0%;
+            border-radius: 6px;
+            transition: .5s ease
+        }
+
+        /* ===== THỬ THÁCH 21 NGÀY ===== */
+        .day-grid {
+            display: grid;
+            grid-template-columns: repeat(7,1fr);
+            gap: 8px;
+            margin-top: 20px
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: #f3f4f6;
+            cursor: pointer;
+            transition: .3s;
+            font-weight: 600;
+        }
+
+            .day-cell.checked {
+                background: linear-gradient(135deg,var(--p),var(--i));
+                color: #fff;
+                box-shadow: 0 4px 10px rgba(102,126,234,.3);
+            }
+        .day-cell.missed{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+        .challenge-reflection{margin-top:16px;padding:14px;border:1px solid var(--border);border-radius:14px;background:rgba(248,250,252,.8)}
+        .mission-check{display:flex;align-items:flex-start;gap:4px;cursor:pointer}
+        .mission-check>span{display:block;flex:1}
+        .mission-check strong{display:block;margin-bottom:6px}
+        .mission-check span span{display:block;font-size:13px;color:#6b7280;line-height:1.6}
+        body.dark .challenge-reflection,body.dark .nv-item{background:#1f2937;color:#f9fafb;border-color:#4b5563}
+        body.dark .mission-check span span{color:#cbd5e1}
+
+
+        /* ===== CHAT AI ===== */
+        /* ===== LỊCH SỬ HỘI THOẠI ===== */
+.chat-layout{display:grid;grid-template-columns:260px minmax(0,1fr);height:calc(100vh - 64px);min-height:560px;background:var(--bg)}
+.chat-history{border-right:1px solid var(--border);background:rgba(255,255,255,.9);display:flex;flex-direction:column;min-width:0}
+.history-head{padding:16px;border-bottom:1px solid var(--border)}
+.history-title{font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.history-search{padding:10px 12px!important;border-radius:12px!important;background:#f9fafb}
+.history-list{padding:10px;overflow:auto;flex:1}
+.history-row{display:flex;align-items:stretch;gap:4px}
+.history-row .history-item{flex:1;min-width:0}
+.history-delete{border:0;background:transparent;color:#9ca3af;border-radius:10px;padding:0 9px;cursor:pointer;transition:.2s}
+.history-delete:hover{background:#fee2e2;color:#dc2626}
+.history-delete:focus-visible{outline:2px solid #667eea;outline-offset:1px}
+.history-item{width:100%;text-align:left;background:transparent;border:1px solid transparent;padding:11px 12px;border-radius:12px;margin-bottom:6px;display:block;cursor:pointer;color:var(--text);transition:.2s}
+.history-item:hover,.history-item.active{background:#eef2ff;border-color:#dbe3ff}
+.history-item strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.history-item small{display:block;color:var(--text-light);margin-top:3px;font-size:11px}
+.history-empty{padding:18px 10px;color:var(--text-light);font-size:13px;text-align:center}
+.chat-main{min-width:0;display:flex;flex-direction:column}
+.chat-main .chat-page-inner{height:100%;display:flex;flex-direction:column}
+.chat-main .chat-container{max-width:none}
+@media(max-width:768px){.chat-layout{grid-template-columns:1fr}.chat-history{position:absolute;z-index:1200;left:0;right:0;top:64px;height:280px;display:none;box-shadow:0 10px 30px rgba(0,0,0,.12)}.chat-history.mobile-open{display:flex}.chat-layout{position:relative}.chat-main{height:calc(100vh - 64px)}}
+body.dark .chat-history{background:#1f2937} body.dark .history-search{background:#111827;color:#e5e7eb}
+.chat-page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0;
+            height: calc(100vh - 64px);
+            display: flex;
+            flex-direction: column
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            background: linear-gradient(180deg,#f9fafb,#fff);
+        }
+
+        .msg {
+            display: flex;
+            gap: 14px;
+            max-width: 94%;
+            animation: fadeInUp .35s ease
+        }
+
+            .msg.user {
+                flex-direction: row-reverse;
+                align-self: flex-end
+            }
+
+        .msg-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .msg.ai .msg-avatar {
+            background: linear-gradient(135deg,var(--p),var(--i))
+        }
+
+        .msg.user .msg-avatar {
+            background: #374151
+        }
+
+        .msg-bubble {
+            padding: 16px 20px;
+            border-radius: 20px;
+            line-height: 1.7;
+            white-space: pre-wrap
+        }
+
+        .msg.ai .msg-bubble {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 6px
+        }
+
+        .msg.user .msg-bubble {
+            background: linear-gradient(135deg,var(--p),var(--i));
+            border-bottom-right-radius: 6px;
+            color: #fff;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px
+        }
+
+        .suggest-btn {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 14px;
+            color: var(--text);
+            cursor: pointer;
+            transition: .25s;
+            flex: 1;
+            min-width: 160px;
+        }
+
+            .suggest-btn:hover {
+                border-color: var(--p);
+                background: #eef2ff;
+                transform: translateY(-2px)
+            }
+
+        .chat-input-bar {
+            padding: 20px;
+            background: #fff;
+            border-top: 1px solid #f3f4f6
+        }
+
+        .input-wrap {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            background: #f9fafb;
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            padding: 12px 18px;
+            transition: .25s;
+        }
+
+            .input-wrap:focus-within {
+                border-color: var(--p);
+                box-shadow: 0 0 0 4px rgba(102,126,234,.1)
+            }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            min-height: 24px;
+            max-height: 120px;
+            resize: none;
+            font-size: 15px;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,var(--p),var(--i));
+            color: #fff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: .2s;
+        }
+
+            .send-btn:hover {
+                transform: scale(1.08);
+                box-shadow: 0 4px 12px rgba(102,126,234,.4)
+            }
+
+            .send-btn:disabled {
+                opacity: .5;
+                cursor: not-allowed;
+                transform: none
+            }
+
+        /* ===== CHÂN TRANG ===== */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #9ca3af;
+            font-size: 14px;
+            margin-top: 20px
+        }
+
+        /* ===== ĐIỀU CHỈNH ĐIỆN THOẠI ===== */
+        @media(max-width:768px) {
+            .nav-inner {
+                height: auto;
+                padding-top: 12px;
+                padding-bottom: 12px;
+                align-items: stretch;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-inner {
+                position: relative;
+            }
+
+            .menu {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                gap: 7px;
+            }
+
+            .menu.mobile-open {
+                display: flex;
+            }
+
+            .menu a {
+                width: 100%;
+                padding: 12px 14px;
+                border-radius: 16px;
+                font-size: 16px;
+            }
+
+            .menu .account-chip,
+            .menu .nav-settings {
+                align-self: flex-start;
+            }
+
+            .menu-toggle {
+                display: block;
+                align-self: flex-end;
+            }
+
+            .hero h1 {
+                font-size: 30px
+            }
+
+            .journal-grid, .stats-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    
+        .nav-settings{background:none;padding:8px;border-radius:10px;font-size:17px}
+        .nav-settings:hover{background:#eef2ff}
+        .data-tools,.chat-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+        .file-btn{cursor:pointer;background:#fff;border:1px solid var(--border);color:var(--text)}
+        .ai-status{font-size:13px;color:var(--success);margin-left:auto}
+        .chat-tools{max-width:900px;margin:0 auto;padding:10px 20px 0;justify-content:flex-end}
+        .timer-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+        .timer-mode{background:#eef2ff;color:var(--p);padding:7px 12px;border-radius:999px;font-weight:600;font-size:13px}
+        .timer-display{text-align:center;font-size:56px;font-weight:700;letter-spacing:2px;margin:12px 0}
+        .timer-controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+        .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(17,24,39,.45);backdrop-filter:blur(4px);z-index:3000;padding:20px;align-items:center;justify-content:center}
+        .modal-backdrop.open{display:flex}
+        .settings-modal{width:min(480px,100%);background:#fff;border-radius:22px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+        .settings-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+        .close-btn{font-size:28px;background:none;color:#6b7280}
+        .setting-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #f3f4f6}
+        .setting-row.column{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+        .privacy-note{font-size:12px;color:#6b7280;margin-top:14px}
+        body.dark{--bg:#111827;--card:#1f2937;--text:#e5e7eb;--text-light:#9ca3af;--border:#374151}
+        body.dark nav,body.dark .chat-input-bar,body.dark .msg.ai .msg-bubble,body.dark .suggest-btn,body.dark .stat-card,body.dark .journal-entry,body.dark .settings-modal{background:#1f2937;color:#e5e7eb}
+        body.dark h2,body.dark h3,body.dark .entry-date,body.dark label{color:#f3f4f6}
+        body.dark .input-wrap{background:#111827;border-color:#374151}
+        body.dark .day-cell{background:#374151}
+        body.dark .menu{background:#1f2937}
+        body.dark .card{border-color:#374151}
+        .typing{display:inline-flex;gap:4px;align-items:center}
+        .typing span{width:6px;height:6px;border-radius:50%;background:#9ca3af;animation:bounce 1s infinite}
+        .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+        @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+        .delete-entry{float:right;background:none;color:#9ca3af;font-size:13px}
+        .delete-entry:hover{color:#ef4444}
+        .clickable-card{cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}
+        .clickable-card:hover,.clickable-card:focus{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.10);outline:none}
+        .clickable-card:focus-visible{outline:3px solid rgba(59,130,246,.45);outline-offset:3px}
+        .ai-reasoning-badge{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 9px;border-radius:999px;font-size:12px;background:#eef2ff;color:#3730a3}
+        .ai-plus-on{background:linear-gradient(135deg,var(--p),var(--i))!important;color:#fff!important;border-color:transparent!important}
+        .chat-refresh-note{font-size:12px;color:var(--text-light);margin-left:4px}
+        body.dark .ai-reasoning-badge{background:#312e81;color:#e0e7ff}
+
+        /* ===== BỘ CÔNG CỤ BRAINCARE ===== */
+        .toolkit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin:18px 0 28px}.media-card{overflow:hidden}.resource-img{width:100%;height:180px;object-fit:cover;border-radius:14px;margin-bottom:12px;display:block}.video-thumb{cursor:pointer}.video-placeholder{height:180px;border-radius:14px;background:linear-gradient(135deg,#eef2ff,#e8eaf6);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;color:#374151;margin-bottom:12px;padding:20px}.media-card>a:first-child{display:block;text-decoration:none}
+        .tool-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:.25s;display:flex;flex-direction:column;gap:10px}
+        .tool-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(102,126,234,.16)}
+        .tool-icon{font-size:34px}
+        .tool-card h3{margin:0;font-size:18px}
+        .tool-card p{color:var(--text-light);font-size:14px;line-height:1.6;flex:1}
+        .tool-card a,.tool-card button{align-self:flex-start}
+        .resource-note{font-size:13px;color:var(--text-light);margin-top:-8px;margin-bottom:18px}
+        body.dark .tool-card{background:#1f2937;border-color:#374151}
+        body.dark .resource-note{color:#cbd5e1}
+
+        .study-planner{background:linear-gradient(135deg,#f7faff,#f4f1ff);border:1px solid #dbeafe;border-radius:22px;padding:22px;margin:18px 0 26px}
+        .study-planner h3{margin:0 0 6px}.study-planner-intro{margin:0 0 16px;color:var(--text-light);font-size:14px;line-height:1.6}
+        .planner-form{display:grid;grid-template-columns:minmax(180px,2fr) minmax(120px,1fr) minmax(115px,1fr) auto;gap:10px;align-items:end}
+        .planner-field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.planner-field input,.planner-field select{width:100%;min-width:0;padding:11px 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff;color:#111827;font:inherit}
+        .planner-summary{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.planner-pill{padding:7px 11px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;font-size:13px;font-weight:700}
+        .planner-list{display:grid;gap:9px}.planner-task{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:13px;padding:12px}.planner-task input{margin-top:4px;width:18px;height:18px;flex-shrink:0}.planner-task-main{flex:1;min-width:0}.planner-task-title{font-weight:700;overflow-wrap:anywhere}.planner-task-meta{font-size:12px;color:#6b7280;margin-top:4px}.planner-task.done .planner-task-title{text-decoration:line-through;color:#6b7280}.priority-tag{font-size:11px;font-weight:800;border-radius:6px;padding:3px 6px;margin-left:5px;background:#fef3c7;color:#92400e}.priority-tag.low{background:#e0f2fe;color:#075985}.planner-empty{padding:18px;border:1px dashed #cbd5e1;border-radius:13px;color:#64748b;text-align:center;background:rgba(255,255,255,.65)}
+        .focus-room{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(250px,.9fr);gap:18px;margin:18px 0 28px}.focus-room .card{margin:0}.focus-checklist{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:9px}.focus-checklist li{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.5}.focus-current-task{font-weight:800;color:var(--p);margin:8px 0}
+        body.dark .study-planner{background:linear-gradient(135deg,#202640,#27213b);border-color:#374151}body.dark .planner-field input,body.dark .planner-field select,body.dark .planner-task,body.dark .planner-pill{background:#1f2937;color:#f9fafb;border-color:#374151}body.dark .planner-empty{background:#1f2937;border-color:#4b5563;color:#cbd5e1}
+        .distraction-map{border:1px solid #d8e5f4;border-radius:22px;padding:22px;margin:22px 0;background:linear-gradient(135deg,#f8fbff,#f2f8ff)}
+        .distraction-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.distraction-form .wide{grid-column:1/-1}
+        .distraction-form label{display:block;font-size:13px;font-weight:750;margin-bottom:6px}.distraction-form select,.distraction-form input,.distraction-form textarea{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#111827;font:inherit;box-sizing:border-box}.distraction-form textarea{min-height:70px;resize:vertical}
+        .distraction-insight{margin-top:16px;padding:16px;border-radius:15px;background:#fff;border:1px solid #dbeafe}.distraction-stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.distraction-pill{padding:7px 10px;border-radius:999px;background:#e8f1ff;color:#1e40af;font-size:12px;font-weight:750}.distraction-record{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #e5e7eb;padding:10px 0}.distraction-record:last-child{border-bottom:0}.distraction-record small{color:#64748b}.distraction-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+        body.dark .distraction-map{background:linear-gradient(135deg,#202640,#1e293b);border-color:#374151}body.dark .distraction-form select,body.dark .distraction-form input,body.dark .distraction-form textarea,body.dark .distraction-insight{background:#1f2937;color:#f9fafb;border-color:#374151}body.dark .distraction-pill{background:#243654;color:#bfdbfe}
+        @media(max-width:640px){.distraction-form{grid-template-columns:1fr}.distraction-form .wide{grid-column:auto}.distraction-map{padding:16px}}
+        @media(max-width:760px){.planner-form{grid-template-columns:1fr 1fr}.planner-form .planner-title-field{grid-column:1/-1}.planner-form .planner-submit{grid-column:1/-1}.focus-room{grid-template-columns:1fr}.planner-task{flex-wrap:wrap}}
+
+
+        /* ===== TÀI KHOẢN + CHALLENGE TỰ ĐỘNG ===== */
+        .auth-gate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;padding:20px}.auth-gate.hidden{display:none}.auth-box{width:min(460px,100%);background:#fff;border-radius:24px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.25)}.auth-box h1{text-align:center;margin-bottom:8px}.auth-box>p{text-align:center;color:#6b7280;margin-bottom:22px}.auth-tabs{display:flex;gap:8px;margin-bottom:20px}.auth-tabs button{flex:1;padding:11px;border:0;border-radius:10px;background:#f3f4f6;font-weight:700;cursor:pointer}.auth-tabs button.active{background:#667eea;color:#fff}.auth-form{display:none}.auth-form.active{display:block}.auth-form label{display:block;font-weight:600;margin:12px 0 6px}.auth-form input,.auth-form select{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:15px}.auth-check{display:flex!important;gap:8px;align-items:flex-start;margin:14px 0;color:#4b5563;font-size:14px}.auth-check input{width:auto;margin-top:4px}.auth-error{min-height:22px;color:#dc2626;font-size:14px;margin:8px 0}.auth-note{font-size:12px;color:#6b7280;margin-top:14px;line-height:1.5}.account-chip{font-size:13px;background:rgba(102,126,234,.1);padding:7px 10px;border-radius:999px;white-space:nowrap} .challenge-start{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}.challenge-info{padding:12px 14px;border-radius:12px;background:#f3f4f6;color:#4b5563;margin-bottom:16px}.day-cell.locked{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}.day-cell.today{outline:3px solid rgba(102,126,234,.25)}body.dark .auth-box{background:#1f2937;color:#f9fafb}body.dark .auth-box>p,body.dark .auth-note{color:#cbd5e1}body.dark .auth-tabs button{background:#374151;color:#e5e7eb}body.dark .challenge-info{background:#374151;color:#e5e7eb}
+
+
+        /* ===== BẢNG ĐIỀU KHIỂN HÔM NAY ===== */
+        .today-panel{margin:0 auto 28px;max-width:980px;background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:1px solid #e0e7ff;border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(79,70,229,.08)}
+        .today-top{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+        .today-title{font-size:22px;font-weight:800;margin:0 0 5px}.today-sub{margin:0;color:#6b7280}.streak-badge{padding:10px 14px;border-radius:999px;background:#fff;font-weight:800;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+        .today-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.today-action{border:0;background:#fff;border-radius:16px;padding:16px;text-align:left;cursor:pointer;transition:.2s;box-shadow:0 2px 10px rgba(0,0,0,.05)}.today-action:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(79,70,229,.12)}.today-action strong{display:block;margin:5px 0}.today-action span{font-size:13px;color:#6b7280;line-height:1.5}.today-progress{margin-top:18px}.today-progress-head{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:7px}.today-bar{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.today-bar>div{height:100%;width:0;background:linear-gradient(90deg,#667eea,#8b5cf6);border-radius:999px;transition:width .5s}
+        body.dark .today-panel{background:linear-gradient(135deg,#202640,#27213b);border-color:#374151}.dark .today-sub,.dark .today-action span{color:#cbd5e1}.dark .today-action,.dark .streak-badge{background:#1f2937;color:#f9fafb}
+        @media(max-width:700px){.today-grid{grid-template-columns:1fr}.today-panel{padding:18px}}
+
+/* ===== BƯỚC 2: HỆ THỐNG HÀNH TRÌNH ===== */
+.hanhtrinh-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin:18px 0}.hanhtrinh-card{background:linear-gradient(135deg,#f8fbff,#ffffff);border:1px solid #dbeafe;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(15,23,42,.06)}.hanhtrinh-card h3{margin:0 0 8px}.diem-lon{font-size:32px;font-weight:800}.badge-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.badge-item{padding:7px 10px;border-radius:999px;background:#f3f4f6;font-size:13px}.badge-item.dat{background:#ecfdf5;color:#047857;font-weight:700}.nhiem-vu-ngay{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.nv-item{border:1px solid #e5e7eb;border-radius:14px;padding:12px;background:#fff}.nv-item strong{display:block;margin-bottom:5px}.nv-item span{font-size:12px;color:#6b7280;line-height:1.5}.hanhtrinh-note{font-size:12px;color:#6b7280;margin-top:10px;line-height:1.6}@media(max-width:700px){.hanhtrinh-grid,.nhiem-vu-ngay{grid-template-columns:1fr}}
+
+ 
+/* ===== DASHBOARD NÂNG CAO ===== */
+.dash-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:-10px 0 22px;flex-wrap:wrap}
+.dash-subtitle{margin:0;color:var(--text-light);font-size:14px}.dash-disclaimer{display:inline-block;margin-top:5px;font-size:12px;color:var(--text-light)}
+.dash-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.dash-kpi{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,.05)}.dash-kpi span{font-size:22px}.dash-kpi strong{display:block;font-size:27px;margin:7px 0 2px}.dash-kpi small{color:var(--text-light)}
+.dash-grid{display:grid;grid-template-columns:1.35fr .9fr;gap:20px}.dash-panel{margin-bottom:20px}.dash-panel-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.dash-panel-head h3{margin:0 0 4px}.dash-panel-head p{font-size:13px;color:var(--text-light);margin:0}
+.dash-bars{height:220px;display:flex;align-items:flex-end;gap:8px;padding:20px 4px 0}.dash-bar-col{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.dash-bar-pair{height:175px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px}.dash-bar{width:34%;min-height:2px;border-radius:5px 5px 0 0;transition:height .35s ease}.dash-bar.study{background:linear-gradient(180deg,#667eea,#764ba2)}.dash-bar.fun{background:linear-gradient(180deg,#f97316,#fb923c)}.dash-bar-col small{font-size:10px;color:var(--text-light)}
+.dash-legend{display:flex;gap:16px;font-size:12px;color:var(--text-light);justify-content:center;margin-top:8px}.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.legend-dot.study{background:#667eea}.legend-dot.fun{background:#f97316}
+.dash-progress-row{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:14px}.dash-status{display:inline-block;margin-top:15px;padding:7px 11px;border-radius:999px;background:#eef2ff;color:#4338ca;font-weight:700;font-size:12px}.dash-assessment{display:flex;justify-content:space-between;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:13px}
+.dash-recent{display:grid;gap:9px;margin-top:14px}.dash-recent-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:13px;background:#fafafa}.dash-recent-main strong{display:block}.dash-recent-main small{color:var(--text-light)}.dash-recent-meta{font-size:12px;color:var(--text-light);text-align:right}.dash-empty{text-align:center;color:var(--text-light);padding:20px;border:1px dashed var(--border);border-radius:13px}
+body.dark .dash-kpi,body.dark .dash-recent-row{background:#1f2937;border-color:#374151}body.dark .dash-status{background:#312e81;color:#e0e7ff}
+@media(max-width:850px){.dash-kpi-grid{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}}@media(max-width:520px){.dash-kpi-grid{grid-template-columns:1fr}.dash-bars{gap:4px}.dash-recent-row{align-items:flex-start;flex-direction:column}.dash-recent-meta{text-align:left}}
+
+</style>
+</head>
+<body>
+
+    <!-- ===== ĐĂNG NHẬP / ĐĂNG KÝ ===== -->
+    <div class="auth-gate" id="authGate">
+        <div class="auth-box">
+            <h1>🧠 BrainCare</h1><p>Tạo tài khoản để lưu tiến độ cá nhân và tham gia thử thách 21 ngày.</p>
+            <div class="auth-tabs"><button id="tabDangNhap" class="active" onclick="doiAuthTab('dangnhap')">Đăng nhập</button><button id="tabDangKy" onclick="doiAuthTab('dangky')">Tạo tài khoản</button></div>
+            <form id="formDangNhap" class="auth-form active" onsubmit="dangNhap(event)"><label>Tên tài khoản</label><input id="loginUser" autocomplete="username" required placeholder="Ví dụ: brainuser"><label>Mật khẩu</label><input id="loginPass" type="password" autocomplete="current-password" required placeholder="Mật khẩu"><div id="loginError" class="auth-error"></div><button class="btn btn-primary" style="width:100%" type="submit">🔐 Đăng nhập</button></form>
+            <form id="formDangKy" class="auth-form" onsubmit="dangKy(event)"><label>Biệt danh hiển thị</label><input id="regName" required maxlength="24" placeholder="Ví dụ: MinhCare"><label>Tên tài khoản</label><input id="regUser" required maxlength="20" autocomplete="username" placeholder="Ví dụ: minh2009"><label>Mật khẩu</label><input id="regPass" type="password" required minlength="4" autocomplete="new-password" placeholder="Ít nhất 4 ký tự"><div id="regError" class="auth-error"></div><button class="btn btn-primary" style="width:100%" type="submit">✨ Tạo tài khoản</button></form>
+            <div class="auth-note">🔒 Bản HTML này lưu tài khoản và dữ liệu cục bộ trên thiết bị. Đây là cơ chế tài khoản demo/offline; mật khẩu không được bảo vệ như hệ thống máy chủ chuyên nghiệp. Không dùng mật khẩu quan trọng hoặc nhập thông tin nhạy cảm.</div>
+        </div>
+    </div>
+
+    <!-- ===== THANH ĐIỀU HƯỚNG ===== -->
+    <nav>
+        <div class="nav-inner">
+            <a href="#" class="logo" onclick="hienTrang('trang-chu');return false">🧠 BrainCare</a>
+            <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()" aria-label="Mở menu" aria-expanded="false">☰</button>
+            <div class="menu" id="mainMenu">
+                <a href="#trang-chu" class="active" onclick="hienTrang('trang-chu')">Trang chủ</a>
+                <a href="#kien-thuc" onclick="hienTrang('kien-thuc')">Kiến thức</a>
+                <a href="#co-so" onclick="hienTrang('co-so')">Cơ sở & giới hạn</a>
+                <a href="#kiem-tra" onclick="hienTrang('kiem-tra')">Đánh giá</a>
+                <a href="#nhat-ky" onclick="hienTrang('nhat-ky')">Nhật ký</a>
+                <a href="#dashboard" onclick="hienTrang('dashboard')">Thống kê</a>
+                <a href="#thu-thach" onclick="hienTrang('thu-thach')">21 Ngày</a>
+                <a href="#bo-cong-cu" onclick="hienTrang('bo-cong-cu')">Bộ công cụ</a>
+                <a href="#chat" onclick="hienTrang('chat')">Trợ lý AI</a>
+                <span class="account-chip" id="accountChip">👤</span>
+                <button class="nav-settings" onclick="moCaiDat()" title="Cài đặt">⚙️</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== TRANG CHỦ ===== -->
+    <section id="trang-chu" class="active">
+        <div class="hero">
+            <h1>🧠 BrainCare</h1>
+            <p>Quan sát thói quen số, ghi nhận tiến trình học tập và thực hành tập trung từng bước</p>
+            <button class="btn btn-primary" onclick="hienTrang('kiem-tra')">📋 Bắt đầu đánh giá</button>
+        </div>
+        <div class="science-banner">
+            <strong>🔎 BrainCare giúp bạn quan sát thói quen — không chẩn đoán “Brain Rot”.</strong>
+            <p style="margin-top:6px">Các điểm số và biểu đồ chỉ phản ánh thông tin bạn tự nhập. Chúng không đo trực tiếp hoạt động não, không thay thế đánh giá chuyên môn và không chứng minh quan hệ nhân quả.</p>
+            <button class="btn btn-sm" style="margin-top:10px" onclick="hienTrang('co-so')">Tìm hiểu cơ sở và giới hạn</button>
+        </div>
+        <div class="today-panel" id="bangDieuKhienHomNay">
+            <div class="today-top">
+                <div><p class="today-title" id="loiChaoHomNay">🎯 Hôm nay mình làm gì?</p><p class="today-sub">Một ngày nhỏ tốt hơn một chút cũng là tiến bộ.</p></div>
+                <div class="streak-badge" id="chuoiNgay">🔥 Chuỗi 0 ngày</div>
+            </div>
+            <div class="today-grid">
+                <button class="today-action" onclick="hienTrang('thu-thach')"><div>🚀</div><strong>Nhiệm vụ hôm nay</strong><span id="nhiemVuHomNay">Mở thử thách 21 ngày để bắt đầu.</span></button>
+                <button class="today-action" onclick="hienTrang('nhat-ky')"><div>📒</div><strong>Ghi lại một ngày</strong><span>Ghi nhanh thời gian học, giải trí và cảm nhận của bạn.</span></button>
+                <button class="today-action" onclick="hienTrang('dashboard')"><div>📈</div><strong>Xem mình tiến bộ</strong><span>Kiểm tra nhật ký và xu hướng sử dụng của bạn.</span></button>
+            </div>
+            <div class="today-progress"><div class="today-progress-head"><span>Tiến độ hành trình 21 ngày</span><span id="phanTram21">0%</span></div><div class="today-bar"><div id="thanhTienDo21"></div></div></div>
+        </div>
+        <div class="features">
+            <div class="card feature-card clickable-card" role="button" tabindex="0" onclick="hienTrang('kiem-tra')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();hienTrang('kiem-tra')}">
+                <div class="feature-icon">📊</div>
+                <h3>Tự đánh giá thói quen</h3>
+                <p>10 câu hỏi tự phản ánh thói quen số và trải nghiệm tập trung; không phải thang đo chẩn đoán đã được kiểm định.</p>
+            </div>
+            <div class="card feature-card clickable-card" role="button" tabindex="0" onclick="hienTrang('nhat-ky')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();hienTrang('nhat-ky')}">
+                <div class="feature-icon">📒</div>
+                <h3>Nhật ký hàng ngày</h3>
+                <p>Ghi chép thời gian, tâm trạng & tiến độ cải thiện</p>
+            </div>
+            <div class="card feature-card clickable-card" role="button" tabindex="0" onclick="hienTrang('thu-thach')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();hienTrang('thu-thach')}">
+                <div class="feature-icon">🔥</div>
+                <h3>Thử thách 21 Ngày</h3>
+                <p>Xây dựng thói quen mới, giảm phụ thuộc màn hình</p>
+            </div>
+            <div class="card feature-card clickable-card" role="button" tabindex="0" onclick="hienTrang('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();hienTrang('dashboard')}">
+                <div class="feature-icon">📈</div>
+                <h3>Thống kê trực quan</h3>
+                <p>Theo dõi xu hướng & nhận xét tự động</p>
+            </div>
+            <div class="card feature-card clickable-card" role="button" tabindex="0" onclick="hienTrang('chat')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();hienTrang('chat')}">
+                <div class="feature-icon">🤖</div>
+                <h3>Trợ lý AI chuyên biệt</h3>
+                <p>Trợ lý theo chủ đề để tham khảo về thói quen số và học tập; câu trả lời có thể sai, hãy kiểm tra nguồn quan trọng.</p>
+            </div>
+            <div class="card feature-card clickable-card" role="button" tabindex="0" onclick="moCaiDat()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();moCaiDat()}">
+                <div class="feature-icon">💾</div>
+                <h3>Dữ liệu trên thiết bị</h3>
+                <p>Dữ liệu lưu trong trình duyệt của thiết bị này; không đồng bộ giữa thiết bị và không phải hệ thống bảo mật cấp máy chủ.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== KIẾN THỨC ===== -->
+    <section id="kien-thuc">
+        <h2>📚 Kiến thức khoa học</h2>
+        <div class="card">
+            <h3>🧠 Brain Rot</h3>
+            <p style="margin:12px 0">“Brain Rot” là thuật ngữ phổ biến trên Internet, không phải một chẩn đoán y khoa chính thức. Trong BrainCare, chúng tôi không xem đây là bệnh hay kết luận rằng nội dung ngắn trực tiếp làm suy giảm não bộ. Thay vào đó, ứng dụng giúp người dùng quan sát những hành vi có thể tự theo dõi như thời lượng sử dụng, sự gián đoạn khi học và cảm nhận về khả năng tập trung.</p>
+            <ul style="margin-left:20px;color:#4b5563">
+                <li style="margin:8px 0"><strong>Thói quen sử dụng:</strong> Khi nào, trong bao lâu và với mục đích gì bạn dùng nội dung số?</li>
+                <li style="margin:8px 0"><strong>Sự gián đoạn:</strong> Thông báo hoặc việc kiểm tra điện thoại có làm bạn rời nhiệm vụ không?</li>
+                <li style="margin:8px 0"><strong>Trải nghiệm cá nhân:</strong> Bạn tự cảm nhận khả năng tập trung và hoàn thành công việc ra sao?</li>
+                <li style="margin:8px 0"><strong>Bối cảnh:</strong> Giấc ngủ, áp lực, sức khỏe và môi trường cũng có thể ảnh hưởng đến sự tập trung.</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>📱 Các lý thuyết nền</h3>
+            <p style="font-weight:600;margin-top:10px">1. Hành vi sử dụng có vấn đề</p>
+            <p style="margin:6px 0 14px">Cần xem xét khả năng kiểm soát hành vi, mức độ ưu tiên và ảnh hưởng đến học tập, giấc ngủ hoặc sinh hoạt. Thời gian dùng màn hình cao một mình không đủ để kết luận “nghiện”.</p>
+            <p style="font-weight:600">2. Tải nhận thức và đa nhiệm</p>
+            <p style="margin:6px 0 14px">Chuyển đổi liên tục giữa các nhiệm vụ có thể làm tăng chi phí chuyển đổi và khiến việc học bị ngắt quãng. Tác động cụ thể phụ thuộc vào người dùng và bối cảnh; không nên suy ra tổn thương não từ hành vi này.</p>
+            <p style="font-weight:600">3. Chú ý, giấc ngủ và môi trường</p>
+            <p style="margin:6px 0">Khó tập trung có nhiều nguyên nhân. Thói quen ngủ, căng thẳng, sức khỏe, độ khó của bài và môi trường học đều cần được cân nhắc; không quy mọi khó khăn cho điện thoại.</p>
+        </div>
+        <div class="card">
+            <h3>✅ Giải pháp & Cách cải thiện</h3>
+            <ul style="margin-left:20px;color:#4b5563">
+                <li style="margin:8px 0">Đặt giới hạn thời gian dùng mạng xã hội, video ngắn</li>
+                <li style="margin:8px 0">Không dùng điện thoại khi học, trước khi ngủ 30–60 phút</li>
+                <li style="margin:8px 0">Tăng dần thời gian đọc sách, làm bài không bị gián đoạn (bắt đầu 10–15 phút)</li>
+                <li style="margin:8px 0">Ghi chép & theo dõi tiến độ hàng ngày</li>
+                <li style="margin:8px 0">Tham gia thử thách 21 Ngày để hình thành thói quen mới</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ===== CƠ SỞ KHOA HỌC VÀ GIỚI HẠN ===== -->
+    <section id="co-so">
+        <h2>🔬 Cơ sở, cách sử dụng và giới hạn</h2>
+        <p style="color:var(--text-light);margin-bottom:18px">BrainCare được thiết kế như một công cụ giáo dục và tự theo dõi. Phần này giải thích rõ điều gì được đo, điều gì chưa thể kết luận và cách sử dụng kết quả một cách có trách nhiệm.</p>
+        <div class="science-grid">
+            <article class="science-card">
+                <h3>🎯 Mục đích của công cụ</h3>
+                <p>Giúp người dùng ghi nhận thời gian học, thời gian giải trí tự báo cáo, tâm trạng và trải nghiệm khi tập trung; từ đó thử những thay đổi nhỏ và quan sát xu hướng cá nhân.</p>
+            </article>
+            <article class="science-card">
+                <h3>📏 Cách hiểu điểm tự đánh giá</h3>
+                <p>10 câu hỏi hiện tại được xây dựng cho mục đích tự phản ánh trong ứng dụng. Tổng điểm 0–40 là tổng các lựa chọn được gán điểm; ngưỡng hiển thị chỉ là quy ước nội bộ, chưa được xác nhận bằng nghiên cứu kiểm định.</p>
+            </article>
+            <article class="science-card">
+                <h3>🧪 Dữ liệu và đo lường</h3>
+                <p>Nhật ký phản ánh những gì người dùng nhập, không phải dữ liệu đo tự động từ điện thoại. Sai số nhớ lại, cách hiểu câu hỏi và thay đổi hoàn cảnh có thể ảnh hưởng kết quả. Nên so sánh cùng một người theo thời gian một cách thận trọng.</p>
+            </article>
+            <article class="science-card">
+                <h3>🤖 Trợ lý trong phiên bản này</h3>
+                <p>Trợ lý hiện dùng kho kiến thức, quy tắc và mẫu phản hồi chạy ngay trong trình duyệt. Nó không phải mô hình AI tạo sinh trực tuyến và không tự kiểm chứng mọi câu trả lời. Với thông tin quan trọng, hãy mở nguồn tham khảo và xác minh độc lập.</p>
+            </article>
+            <article class="science-card">
+                <h3>⚖️ Điều không thể kết luận</h3>
+                <ul>
+                    <li>Không chẩn đoán bệnh hoặc “Brain Rot”.</li>
+                    <li>Không đo trực tiếp trí nhớ, trí thông minh hay hoạt động não.</li>
+                    <li>Không chứng minh rằng dùng app gây ra cải thiện.</li>
+                    <li>Không thay thế nghiên cứu có thiết kế, nhóm so sánh và phân tích thống kê phù hợp.</li>
+                </ul>
+            </article>
+        </div>
+        <div class="science-card">
+            <h3>🧭 Cách sử dụng có ích trong đời sống</h3>
+            <ol style="padding-left:22px;line-height:1.8">
+                <li>Chọn một mục tiêu cụ thể, ví dụ hoàn thành một phiên học 20 phút không bị gián đoạn.</li>
+                <li>Ghi nhật ký đều đặn, nhập số liệu gần với thực tế thay vì cố làm đẹp kết quả.</li>
+                <li>Thử từng thay đổi nhỏ và quan sát ít nhất vài ngày; không cần ép bản thân giảm màn hình một cách cực đoan.</li>
+                <li>Nhìn cả giấc ngủ, áp lực, lịch học và hoàn cảnh; đừng quy mọi khó khăn cho một nguyên nhân duy nhất.</li>
+                <li>Nếu việc dùng thiết bị hoặc khó tập trung gây ảnh hưởng lớn, hãy trao đổi với người lớn đáng tin cậy hoặc chuyên gia phù hợp.</li>
+            </ol>
+            <div class="notice">Nếu dùng BrainCare trong một nghiên cứu học sinh, cần có quy trình thu thập dữ liệu riêng, thông tin đồng thuận phù hợp, bảo vệ dữ liệu và phân tích trung thực. Không dùng điểm tự đánh giá của ứng dụng như bằng chứng chẩn đoán hoặc thay thế thang đo đã được kiểm định.</div>
+        </div>
+        <div class="science-card" style="margin-top:14px">
+            <h3>📚 Nguồn đọc thêm</h3>
+            <ul>
+                <li><a href="https://www.who.int/teams/mental-health-and-substance-use/promotion-prevention/digital-environments-and-mental-health/" target="_blank" rel="noopener noreferrer"><strong>WHO — Digital environments and mental health</strong></a>: thông tin về môi trường số và sức khỏe tâm thần.</li>
+                <li><a href="https://www.who.int/europe/news-room/25-09-2024-teens--screens-and-mental-health" target="_blank" rel="noopener noreferrer"><strong>WHO Europe — Teens, screens and mental health (2024)</strong></a>: thông tin về hành vi sử dụng mạng xã hội ở thanh thiếu niên.</li>
+                <li><a href="https://www.who.int/standards/classifications/frequently-asked-questions/gaming-disorder" target="_blank" rel="noopener noreferrer"><strong>WHO — Gaming disorder</strong></a>: phân biệt thuật ngữ được phân loại trong ICD-11 với cách gọi phổ biến trên mạng.</li>
+                <li><a href="https://www.unicef.org/parenting/child-care/online-privacy" target="_blank" rel="noopener noreferrer"><strong>UNICEF — Online privacy</strong></a>: quyền riêng tư và an toàn trực tuyến.</li>
+            </ul>
+            <p class="muted-small" style="margin-top:10px">Các nguồn này cung cấp bối cảnh chung; chúng không xác nhận rằng bảng câu hỏi BrainCare đã được kiểm định hay chứng minh hiệu quả của chương trình 21 ngày.</p>
+        </div>
+        <div class="research-actions">
+            <button class="btn btn-primary" onclick="xuatBaoCaoCaNhanCSV()">⬇️ Xuất nhật ký cá nhân dạng CSV</button>
+            <button class="btn" onclick="xuatDuLieu()">💾 Sao lưu dữ liệu JSON</button>
+        </div>
+        <p class="muted-small" style="margin-top:10px">Tệp xuất chứa dữ liệu bạn đã nhập trên thiết bị này. Hãy kiểm tra và xóa thông tin nhạy cảm trước khi chia sẻ cho người khác hoặc đưa vào báo cáo.</p>
+    </section>
+
+    <!-- ===== ĐÁNH GIÁ ===== -->
+    <section id="kiem-tra">
+        <h2>📝 Tự đánh giá thói quen số</h2>
+        <form id="danhGiaForm" class="card">
+            <p style="margin-bottom:12px;color:#6b7280">Chọn câu trả lời gần với trải nghiệm gần đây của bạn nhất. Điểm số là chỉ báo tự phản ánh do BrainCare xây dựng, chưa phải thang đo tâm lý/y khoa được kiểm định.</p><div class="notice" style="margin-top:0">Kết quả không chẩn đoán “Brain Rot”, không đánh giá trí thông minh hay hoạt động não. Điểm cao chỉ gợi ý rằng bạn có thể muốn xem lại một số thói quen và bối cảnh của mình.</div>
+            <div class="form-group">
+                <label>1. Thời gian xem video ngắn/giải trí mỗi ngày?</label>
+                <select id="q1">
+                    <option value="0">Ít hơn 30 phút</option>
+                    <option value="1">30 phút – 1 giờ</option>
+                    <option value="2">1 – 2 giờ</option>
+                    <option value="3">2 – 4 giờ</option>
+                    <option value="4">Trên 4 giờ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>2. Khả năng tập trung học/làm bài không mở điện thoại?</label>
+                <select id="q2">
+                    <option value="0">Trên 45 phút liên tục</option>
+                    <option value="1">Khoảng 30 phút</option>
+                    <option value="2">Khoảng 15–20 phút</option>
+                    <option value="3">Chỉ 5–10 phút</option>
+                    <option value="4">Dưới 5 phút, luôn muốn lấy máy</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>3. Khi đọc tài liệu dài hơn 2 trang bạn cảm thấy?</label>
+                <select id="q3">
+                    <option value="0">Bình thường, đọc được</option>
+                    <option value="1">Hơi khó nhưng cố được</option>
+                    <option value="2">Rất khó, hay bỏ dở</option>
+                    <option value="3">Không chịu được, phải lướt liên tục</option>
+                    <option value="4">Hoàn toàn không đọc được gì dài</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>4. Mức độ kiểm tra điện thoại khi thức dậy & trước khi ngủ?</label>
+                <select id="q4">
+                    <option value="0">Không, có thói quen khác</option>
+                    <option value="1">Thỉnh thoảng</option>
+                    <option value="2">Thường xuyên</option>
+                    <option value="3">Luôn, không kiểm tra không yên</option>
+                    <option value="4">Mở mắt là lấy máy, đến ngủ mới bỏ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>5. Khả năng nhớ nội dung vừa học sau 1 ngày?</label>
+                <select id="q5">
+                    <option value="0">Nhớ rõ, dễ liên kết kiến thức</option>
+                    <option value="1">Nhớ được phần chính</option>
+                    <option value="2">Nhớ mơ hồ, phải xem lại nhiều lần</option>
+                    <option value="3">Quên nhanh, hầu như không nhớ gì</option>
+                    <option value="4">Không tập trung nên không vào đầu</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>6. Khi có thông báo bạn thường làm gì?</label>
+                <select id="q6">
+                    <option value="0">Bỏ qua, xem khi rảnh</option>
+                    <option value="1">Xem sau khi hoàn thành việc</option>
+                    <option value="2">Không cưỡng, hay xem ngay</option>
+                    <option value="3">Ngay lập tức, không chờ được</option>
+                    <option value="4">Mất tập trung hẳn, không quay lại</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>7. So sánh khả năng suy nghĩ sâu, giải bài phức tạp bây giờ so với trước?</label>
+                <select id="q7">
+                    <option value="0">Tốt hơn / không thay đổi</option>
+                    <option value="1">Khá như trước</option>
+                    <option value="2">Kém hơn một chút</option>
+                    <option value="3">Kém rõ rệt, nhanh mệt não</option>
+                    <option value="4">Rất suy giảm, né việc cần tư duy</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>8. Khi rảnh 5–10 phút bạn có muốn xem video ngắn?</label>
+                <select id="q8">
+                    <option value="0">Không, có việc khác làm</option>
+                    <option value="1">Đôi khi nghĩ đến</option>
+                    <option value="2">Thường muốn mở ra</option>
+                    <option value="3">Luôn, không biết làm gì khác</option>
+                    <option value="4">Không ngồi yên được, phải xem liên tục</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>9. Khả năng hoàn thành bài tập lớn không chia nhỏ nhiều lần?</label>
+                <select id="q9">
+                    <option value="0">Hoàn thành tốt, tự lập kế hoạch</option>
+                    <option value="1">Cố gắng được</option>
+                    <option value="2">Khó, dễ bỏ ngang</option>
+                    <option value="3">Rất khó, phải chia nhỏ thật ngắn mới làm</option>
+                    <option value="4">Không bắt đầu được</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>10. Khi học cùng nhiều nguồn thông tin bạn xử lý thế nào?</label>
+                <select id="q10">
+                    <option value="0">Tổng hợp tốt, phân biệt chính/phụ</option>
+                    <option value="1">Được nhưng hơi tốn thời gian</option>
+                    <option value="2">Dễ rối, không biết chọn gì</option>
+                    <option value="3">Chỉ theo nguồn ngắn, dễ hiểu</option>
+                    <option value="4">Bỏ qua, không xử lý được</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Xem kết quả 📋</button>
+            <div id="ketQua" class="result-box">
+                <h3 id="tieuDeKQ"></h3>
+                <p id="noiDungKQ"></p>
+            </div>
+        </form>
+    </section>
+
+    <!-- ===== NHẬT KÝ ===== -->
+    <section id="nhat-ky">
+        <h2>📒 Nhật ký học tập</h2>
+        <div class="journal-form">
+            <h3 style="margin-bottom:16px">✍️ Ghi chép hôm nay</h3>
+            <div class="journal-grid">
+                <div><label>Ngày</label><input type="date" id="ngayNhap"></div>
+                <div>
+                    <label>Tâm trạng</label>
+                    <div class="mood-group" id="moodChon">
+                        <button type="button" class="mood-btn" data-mood="😄">😄</button>
+                        <button type="button" class="mood-btn" data-mood="🙂">🙂</button>
+                        <button type="button" class="mood-btn" data-mood="😐">😐</button>
+                        <button type="button" class="mood-btn" data-mood="😔">😔</button>
+                        <button type="button" class="mood-btn" data-mood="😟">😟</button>
+                    </div>
+                </div>
+                <div><label>Giờ học tập</label><input type="number" id="gioHoc" step="0.5" min="0" max="12" placeholder="VD: 2.5"></div>
+                <div><label>Giờ giải trí màn hình</label><input type="number" id="gioGiaiTri" step="0.5" min="0" max="12" placeholder="VD: 1.5"></div>
+            </div>
+            <div class="journal-grid full">
+                <label>Nội dung / Ghi chú</label>
+                <textarea id="ghiChu" placeholder="Bạn đã học gì? Cảm thấy thế nào? Tiến triển gì?"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="luuNhatKy()">💾 Lưu nhật ký</button>
+        </div>
+        <div class="data-tools">
+            <button class="btn btn-sm" onclick="xuatDuLieu()">⬇️ Xuất dữ liệu</button>
+            <label class="btn btn-sm file-btn">⬆️ Nhập dữ liệu<input type="file" id="nhapDuLieu" accept=".json" onchange="nhapDuLieu(event)" hidden></label>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3>📖 Lịch sử</h3>
+            <button class="btn btn-danger btn-sm" onclick="if(confirm('XÓA TẤT CẢ dữ liệu? Không khôi phục được!')) xoaDuLieu()">X Xóa hết</button>
+        </div>
+        <div id="danhSachNhatKy" class="journal-list"></div>
+    </section>
+
+    <!-- ===== THỐNG KÊ ===== -->
+    <section id="dashboard">
+        <h2>📊 Dashboard & Tiến độ</h2>
+        <div class="dash-head">
+            <div>
+                <p class="dash-subtitle">Tổng quan dữ liệu bạn tự ghi nhận trong BrainCare.</p>
+                <span class="dash-disclaimer">Không phải phép đo hoạt động não và không dùng để chẩn đoán.</span>
+            </div>
+            <button class="btn btn-sm" onclick="capNhatThongKe();capNhatDashboardNangCao()">↻ Cập nhật</button>
+        </div>
+        <div class="dash-kpi-grid">
+            <div class="dash-kpi"><span>📒</span><strong id="dashSoNhatKy">0</strong><small>Ngày có nhật ký</small></div>
+            <div class="dash-kpi"><span>📚</span><strong id="dashTongGioHoc">0h</strong><small>Tổng giờ học</small></div>
+            <div class="dash-kpi"><span>📱</span><strong id="dashTongGioGiaiTri">0h</strong><small>Tổng giờ giải trí</small></div>
+            <div class="dash-kpi"><span>🔥</span><strong id="dashTienDo21">0%</strong><small>Tiến độ 21 ngày</small></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card highlight"><div class="stat-label">Tổng ngày theo dõi</div><div class="stat-num" id="tongNgay">0</div></div>
+            <div class="stat-card"><div class="stat-label">TB học/ngày</div><div class="stat-num" id="tbHoc">0h</div></div>
+            <div class="stat-card"><div class="stat-label">TB giải trí/ngày</div><div class="stat-num" id="tbGiaiTri">0h</div></div>
+            <div class="stat-card"><div class="stat-label">Xu hướng ghi nhận</div><div class="stat-num" id="xuHuong">—</div></div>
+        </div>
+        <div class="dash-grid">
+            <div class="card dash-panel">
+                <div class="dash-panel-head"><div><h3>📈 Nhịp học tập 7 ngày</h3><p>So sánh thời gian học và giải trí từ nhật ký.</p></div></div>
+                <div id="dashBieuDo7Ngay" class="dash-bars"></div>
+                <div class="dash-legend"><span><i class="legend-dot study"></i>Học</span><span><i class="legend-dot fun"></i>Giải trí</span></div>
+            </div>
+            <div class="card dash-panel">
+                <div class="dash-panel-head"><div><h3>🎯 Hành trình</h3><p>Tiến độ của tài khoản hiện tại.</p></div></div>
+                <div class="dash-progress-row"><span>Thử thách 21 ngày</span><strong id="dash21Text">0/21 ngày</strong></div>
+                <div class="progress-bar-wrap"><div class="progress-bar" id="dash21Bar"></div></div>
+                <div class="dash-status" id="dashStatus">Chưa bắt đầu</div>
+                <div class="dash-assessment"><span>📊 Đánh giá gần nhất</span><strong id="dashAssessment">Chưa có</strong></div>
+            </div>
+        </div>
+        <div class="card">
+            <h3>📈 Biểu đồ 7 ngày gần nhất</h3>
+            <p class="muted-small">Biểu đồ dựa trên nhật ký bạn tự nhập; xu hướng mô tả dữ liệu đã ghi, không chứng minh nguyên nhân hay hiệu quả của BrainCare.</p>
+            <div id="bieuDo" style="height:220px;display:flex;align-items:flex-end;gap:4px;padding:0 10px;margin-top:20px"></div>
+        </div>
+        <div class="card dash-panel">
+            <div class="dash-panel-head"><div><h3>📝 Nhật ký gần đây</h3><p>Chỉ hiển thị dữ liệu của tài khoản đang đăng nhập.</p></div></div>
+            <div id="dashRecent" class="dash-recent"><div class="dash-empty">Chưa có nhật ký.</div></div>
+        </div>
+        <div class="card">
+            <h3>💡 Nhận xét</h3>
+            <p id="nhanXet" style="color:#4b5563;line-height:1.8">Chưa có đủ dữ liệu. Hãy ghi nhật ký hàng ngày để xem phân tích!</p>
+        </div>
+    </section>
+
+    <!-- ===== THỬ THÁCH 21 NGÀY ===== -->
+    <section id="thu-thach">
+        <h2>🔥 Thử thách 21 Ngày</h2>
+        <p style="color:#6b7280;margin-bottom:24px">Mỗi ngày có một nhiệm vụ nhỏ. Chỉ đánh dấu khi bạn thực sự đã thực hiện; mở ứng dụng không tự được tính là hoàn thành. Dữ liệu là tự báo cáo và được lưu trên trình duyệt của thiết bị này.</p>
+        <div class="card"><div class="challenge-start"><button class="btn btn-primary" id="nutBatDau21" onclick="batDauThuThach()">🚀 Bắt đầu thử thách</button><button class="btn btn-sm" id="nutDatLai21" onclick="datLaiThuThach()" style="display:none">↺ Bắt đầu lại</button></div>
+            <div class="challenge-info" id="thongTin21">Bắt đầu khi bạn sẵn sàng. Mỗi ngày, hoàn thành nhiệm vụ, tự đánh giá và xác nhận check-in.</div>
+            <h3 style="margin-bottom:12px">Lịch trình 21 ngày</h3>
+            <p class="hanhtrinh-note">✓ Đã check-in · Hôm nay là ngày hiện tại · × Bỏ lỡ · Ngày màu xám là ngày chưa đến.</p>
+            <div class="day-grid" id="luoiNgay"></div>
+            <div class="hanhtrinh-grid">
+                <div class="hanhtrinh-card">
+                    <h3>🎯 Nhiệm vụ hôm nay</h3>
+                    <p id="nhiemVuNgayText" style="color:#4b5563;margin:0">Bắt đầu thử thách để xem nhiệm vụ đầu tiên.</p>
+                    <div class="nhiem-vu-ngay" id="nhiemVuNgay"></div>
+                    <div class="challenge-reflection" id="phanHoi21">
+                        <label for="mucTapTrung21"><b>Tự đánh giá mức độ tập trung hôm nay (không bắt buộc)</b></label>
+                        <select id="mucTapTrung21" onchange="luuPhanHoi21()" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;margin:8px 0 12px"><option value="">Chưa chọn</option><option value="1">1 — Rất khó tập trung</option><option value="2">2 — Khó tập trung</option><option value="3">3 — Bình thường</option><option value="4">4 — Khá tập trung</option><option value="5">5 — Rất tập trung</option></select>
+                        <label for="ghiChu21"><b>Mô tả ngắn việc bạn đã thực hiện (bắt buộc để check-in)</b></label>
+                        <textarea id="ghiChu21" rows="3" maxlength="250" placeholder="Ví dụ: Mình học 25 phút và để điện thoại ngoài tầm với... (ít nhất 10 ký tự)" oninput="luuPhanHoi21()" onblur="luuPhanHoi21()" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;margin-top:8px"></textarea>
+                        <p class="hanhtrinh-note" style="margin-top:6px">Mô tả giúp bạn tự nhìn lại việc đã làm. Đây vẫn là tự báo cáo, ứng dụng không thể tự xác minh hành vi thực tế.</p>
+                    </div>
+                    <button class="btn btn-primary" id="nutCheckin21" onclick="checkInNgay21()" disabled style="margin-top:12px;width:100%">✓ Xác nhận check-in hôm nay</button>
+                    <p class="hanhtrinh-note" id="trangThaiCheckin21">Hoàn thành nhiệm vụ rồi xác nhận check-in để ghi nhận ngày này.</p>
+                    <p class="hanhtrinh-note">Để check-in, bạn cần đánh dấu nhiệm vụ đã thực hiện và ghi mô tả ngắn (ít nhất 10 ký tự). Đây là cơ chế tự cam kết, không phải bằng chứng độc lập; ứng dụng không thể xác minh bạn có thực sự làm nhiệm vụ hay không.</p>
+                </div>
+                <div class="hanhtrinh-card">
+                    <h3>⭐ Điểm hành trình</h3>
+                    <div class="diem-lon" id="diemHanhTrinh">0</div>
+                    <div class="hanhtrinh-note"><b>Cách tính điểm:</b> Hoàn thành nhiệm vụ +5đ/ngày · Check-in thủ công +10đ/ngày · Ghi nhật ký +5đ/ngày · Hoàn thành phiên tập trung +15đ/lần · Hoàn thành nhiệm vụ đọc +10đ/lần.</div>
+                    <div class="hanhtrinh-note"><b>Mốc hành trình:</b> 0–49đ 🌱 Mới bắt đầu · 50–99đ 🔥 Đang hình thành thói quen · 100–199đ 📚 Tiến bộ tốt · 200–299đ 🚀 Duy trì rất tốt · 300đ+ 🏆 Hành trình xuất sắc.</div>
+                    <div class="hanhtrinh-note">Điểm chỉ là điểm khuyến khích duy trì hoạt động, không phải điểm đánh giá sức khỏe hay mức độ Brain Rot.</div>
+                    <div style="color:#6b7280;font-size:13px">điểm tích lũy</div>
+                    <div class="badge-list" id="huyHieuList"></div>
+                </div>
+            </div>
+<p style="margin-top:20px;font-weight:600">Đã điểm danh: <span id="soNgayDat">0</span>/21 ngày ✅</p><div class="progress-bar-wrap"><div class="progress-bar" id="tienDo"></div></div>
+        </div>
+    </section>
+<!-- ===== BỘ CÔNG CỤ BRAINCARE ===== -->
+    <section id="bo-cong-cu">
+        <h2>🧰 Bộ công cụ BrainCare</h2>
+        <p class="resource-note">Các công cụ hỗ trợ tự theo dõi và tài liệu tham khảo đáng tin cậy về thói quen sử dụng thiết bị số.</p>
+        <div class="toolkit-grid">
+            <div class="tool-card"><div class="tool-icon">🎯</div><h3>Kế hoạch học tập cá nhân</h3><p>Chia bài tập thành việc nhỏ, chọn môn học và mức ưu tiên, đánh dấu hoàn thành để biết mình còn việc gì.</p><button class="btn btn-primary btn-sm" onclick="document.getElementById('plannerTitle').focus();document.getElementById('plannerTitle').scrollIntoView({behavior:'smooth',block:'center'})">＋ Lập kế hoạch</button></div>
+            <div class="tool-card"><div class="tool-icon">🧠</div><h3>Phòng học tập trung</h3><p>Chọn một nhiệm vụ, bật đồng hồ tập trung 25 phút, nghỉ 5 phút và dùng checklist ngắn để giảm xao nhãng.</p><button class="btn btn-primary btn-sm" onclick="document.getElementById('phongHocTapTrung').scrollIntoView({behavior:'smooth',block:'start'})">Vào phòng học</button></div>
+            <div class="tool-card"><div class="tool-icon">📱</div><h3>Hướng dẫn xây dựng thói quen số lành mạnh</h3><p>Tham khảo 10 gợi ý thực tế để cân bằng việc sử dụng công nghệ, tạo khoảng thời gian không dùng thiết bị và hình thành thói quen sử dụng thiết bị có chủ đích.</p><a class="btn btn-primary btn-sm" href="https://www.unicef.org/vietnam/vi/10-cach-xay-dung-thoi-quen-so-lanh-manh-tai-nha" target="_blank" rel="noopener noreferrer">Xem hướng dẫn tiếng Việt</a></div>
+            <div class="tool-card"><div class="tool-icon">📚</div><h3>Kỹ năng số và học tập trong môi trường số</h3><p>Tham khảo nội dung về kỹ năng số và cơ hội học tập, giúp học sinh sử dụng công nghệ theo hướng hỗ trợ việc học và phát triển lâu dài.</p><a class="btn btn-primary btn-sm" href="https://www.unicef.org/vietnam/vi/ky-nang-co-hoi-hoc-tap-moi-tre-em" target="_blank" rel="noopener noreferrer">Xem tài liệu tiếng Việt</a></div>
+        </div>
+
+        <div class="study-planner" id="keHoachHocTap">
+            <h3>🎯 Kế hoạch học tập của mình</h3>
+            <p class="study-planner-intro">Ghi những việc học cụ thể như “làm câu 1–5 Toán” thay vì mục tiêu quá chung chung. Danh sách được lưu trên trình duyệt của thiết bị này.</p>
+            <form class="planner-form" onsubmit="themNhiemVuHoc(event)">
+                <div class="planner-field planner-title-field"><label for="plannerTitle">Việc cần làm</label><input id="plannerTitle" maxlength="120" required placeholder="Ví dụ: Ôn 15 từ vựng tiếng Anh"></div>
+                <div class="planner-field"><label for="plannerSubject">Môn học</label><select id="plannerSubject"><option>Chung</option><option>Toán</option><option>Ngữ văn</option><option>Tiếng Anh</option><option>Vật lí</option><option>Hóa học</option><option>Sinh học</option><option>Lịch sử</option><option>Địa lí</option><option>Tin học</option><option>Môn khác</option></select></div>
+                <div class="planner-field"><label for="plannerPriority">Ưu tiên</label><select id="plannerPriority"><option value="high">Quan trọng</option><option value="normal" selected>Bình thường</option><option value="low">Có thể sau</option></select></div>
+                <div class="planner-submit"><button class="btn btn-primary" type="submit">＋ Thêm việc</button></div>
+            </form>
+            <div class="planner-summary"><span class="planner-pill" id="plannerTotal">📌 0 việc</span><span class="planner-pill" id="plannerDone">✅ 0 hoàn thành</span><span class="planner-pill" id="plannerLeft">📝 0 còn lại</span></div>
+            <div id="plannerList" class="planner-list"><div class="planner-empty">Bạn chưa thêm nhiệm vụ nào. Hãy bắt đầu bằng một việc nhỏ nhé!</div></div>
+            <p class="resource-note" style="margin:14px 0 0">Gợi ý: chọn tối đa 1–3 việc quan trọng cho một buổi học. Kế hoạch là công cụ hỗ trợ, không phải áp lực phải hoàn thành mọi thứ.</p>
+        </div>
+
+        <h3 id="phongHocTapTrung" style="margin:26px 0 12px">🧠 Phòng học tập trung</h3>
+        <p class="resource-note">Trước khi bắt đầu, hãy chọn một việc trong kế hoạch, để điện thoại ngoài tầm tay nếu phù hợp và đóng những tab không cần thiết.</p>
+        <div class="focus-room">
+            <div class="card focus-timer-card">
+                <div class="timer-head"><div><h3>⏱️ Đồng hồ Pomodoro</h3><p style="color:#6b7280">Một phiên tập trung 25 phút, sau đó nghỉ 5 phút.</p></div><span id="timerMode" class="timer-mode">Tập trung</span></div>
+                <div id="focusCurrentTask" class="focus-current-task">🎯 Chưa chọn nhiệm vụ cụ thể</div>
+                <div id="timerDisplay" class="timer-display" role="timer" aria-live="off">25:00</div>
+                <div class="timer-controls"><button class="btn btn-primary btn-sm" onclick="batDauHenGio()">▶ Bắt đầu</button><button class="btn btn-sm" onclick="tamDungHenGio()">⏸ Tạm dừng</button><button class="btn btn-sm" onclick="datLaiHenGio()">↺ Đặt lại</button></div>
+                <p class="resource-note" style="margin:12px 0 0">Mẹo: trong phiên học, chỉ làm nhiệm vụ đã chọn. Nếu bị phân tâm, ghi nhanh điều khiến bạn xao nhãng rồi quay lại việc đang làm.</p>
+            </div>
+            <div class="card"><h3>✅ Checklist trước phiên học</h3><ul class="focus-checklist"><li><span>☐</span><span><strong>Mục tiêu rõ ràng:</strong> biết chính xác việc gì cần hoàn thành trong phiên này.</span></li><li><span>☐</span><span><strong>Giảm xao nhãng:</strong> tắt thông báo không cần thiết hoặc để điện thoại xa tầm tay.</span></li><li><span>☐</span><span><strong>Chuẩn bị đủ:</strong> mở sách, vở và tài liệu cần dùng trước khi bấm bắt đầu.</span></li><li><span>☐</span><span><strong>Nghỉ có chủ đích:</strong> đứng dậy, uống nước, nhìn xa; tránh biến 5 phút nghỉ thành lướt vô hạn.</span></li></ul><p class="resource-note" style="margin:14px 0 0">Pomodoro là một cách tổ chức thời gian, không phải phương pháp phù hợp với tất cả mọi người. Bạn có thể dừng hoặc điều chỉnh nếu thấy mệt.</p></div>
+        </div>
+
+        <h3 style="margin:24px 0 12px">🎥 Video tham khảo và mục đích sử dụng</h3>
+        <p style="color:var(--text-light);margin-bottom:16px">Các video dưới đây không dùng để chẩn đoán Brain Rot. Chúng là tài liệu giáo dục giúp người dùng hiểu rõ hơn về thiết bị số, nội dung số, sự tập trung và cách xây dựng thói quen sử dụng công nghệ hợp lý.</p>
+        <div class="toolkit-grid">
+            <div class="tool-card"><div class="tool-icon">🇻🇳</div><h3>Điện thoại và sự tập trung trong lớp học</h3><p><strong>Mục đích:</strong> Giúp học sinh nhận diện việc điện thoại có thể trở thành yếu tố gây xao nhãng trong môi trường học tập. Nội dung này liên quan trực tiếp đến nhóm biến về khả năng tập trung của BrainCare.</p><a class="btn btn-sm" href="https://www.youtube.com/watch?v=fHEJaMFg5G8" target="_blank" rel="noopener noreferrer">Xem video</a></div>
+            <div class="tool-card"><div class="tool-icon">🇻🇳</div><h3>Quản lý điện thoại trong trường học</h3><p><strong>Mục đích:</strong> Cung cấp góc nhìn thực tế về cách trường học quản lý việc sử dụng điện thoại. Nội dung liên quan đến hành vi sử dụng thiết bị số của học sinh.</p><a class="btn btn-sm" href="https://vtv.vn/video/cam-dien-thoai-truong-hoc-108685711.htm" target="_blank" rel="noopener noreferrer">Xem video</a></div>
+            <div class="tool-card"><div class="tool-icon">🇻🇳</div><h3>Sử dụng mạng xã hội an toàn</h3><p><strong>Mục đích:</strong> Giúp học sinh nhận biết những rủi ro và cách sử dụng mạng xã hội an toàn, có kiểm soát. Nội dung liên quan đến hành vi sử dụng nội dung số và thói quen số lành mạnh.</p><a class="btn btn-sm" href="https://vtv.vn/video/bao-ve-tre-em-tren-khong-gian-mang-108694279.htm" target="_blank" rel="noopener noreferrer">Xem video</a></div>
+            <div class="tool-card"><div class="tool-icon">🌎</div><h3>Cân bằng thời gian với công nghệ</h3><p><strong>Mục đích:</strong> Cung cấp góc nhìn quốc tế và các gợi ý để chủ động kiểm soát thời gian sử dụng thiết bị, từ đó hỗ trợ xây dựng thói quen số cân bằng hơn.</p><a class="btn btn-sm" href="https://www.youtube.com/watch?v=t5QBfHN6G-4" target="_blank" rel="noopener noreferrer">Xem video</a></div>
+        </div>
+
+        <h3>🔗 Tài liệu tham khảo thêm</h3>
+        <div class="toolkit-grid">
+            <div class="tool-card"><div class="tool-icon">🌍</div><h3>Tổ chức Y tế Thế giới — Môi trường số và sức khỏe</h3><p>Thông tin của Tổ chức Y tế Thế giới về cơ hội, rủi ro và sức khỏe trong môi trường số.</p><a class="btn btn-sm" href="https://www.who.int/teams/mental-health-and-substance-use/promotion-prevention/digital-environments-and-mental-health/" target="_blank" rel="noopener noreferrer">Mở nguồn tham khảo</a></div>
+            <div class="tool-card"><div class="tool-icon">🛡️</div><h3>Quỹ Nhi đồng Liên Hợp Quốc — An toàn và quyền riêng tư</h3><p>Hướng dẫn về quyền riêng tư, bảo vệ thông tin cá nhân và sử dụng môi trường trực tuyến an toàn.</p><a class="btn btn-sm" href="https://www.unicef.org/parenting/child-care/online-privacy" target="_blank" rel="noopener noreferrer">Mở nguồn tham khảo</a></div>
+        </div>
+    </section>
+
+    <!-- ===== TRỢ LÝ AI ===== -->
+    <section id="chat" class="chat-page">
+        <div class="chat-layout">
+            <aside class="chat-history" id="chatHistory">
+                <div class="history-head">
+                    <div class="history-title"><span>Lịch sử chat</span><button class="btn btn-sm" onclick="taoHoiThoaiMoi()" title="Tạo hội thoại mới">＋</button></div>
+                    <input class="history-search" id="timHoiThoai" placeholder="🔎 Tìm hội thoại..." oninput="veLichSuChat()">
+                </div>
+                <div class="history-list" id="danhSachHoiThoai"></div>
+            </aside>
+            <div class="chat-main">
+                <div class="chat-page-inner">
+                    <div class="chat-container" id="khungChat">
+                        <div class="msg ai">
+                            <div class="msg-avatar">🧠</div>
+                            <div class="msg-bubble">
+                                Chào bạn! 👋 Mình là <strong>BrainCare AI</strong> — trợ lý chuyên về sức khỏe kỹ thuật số, tập trung & thói quen học tập 💪
+
+                                Mình có thể cùng bn phân tích vấn đề, giải thích khái niệm và các <strong>hội chứng/biểu hiện</strong> ở mức thông tin tham khảo. Mình ko chẩn đoán bệnh và sẽ nói rõ khi câu hỏi cần chuyên gia.
+
+                                Nếu bn hỏi lệch khỏi phạm vi BrainCare, mình sẽ nhắc nhẹ để đưa cuộc trò chuyện về đúng trọng tâm nha 😊
+                            </div>
+                        </div>
+                        <div class="suggestions">
+                            <button class="suggest-btn" onclick="guiTuDong('Brain Rot là gì và những biểu hiện nào thường gặp?')">🧠 Brain Rot là gì?</button>
+                            <button class="suggest-btn" onclick="guiTuDong('Hội chứng là gì? Làm sao phân biệt biểu hiện với chẩn đoán?')">🩺 Về hội chứng</button>
+                            <button class="suggest-btn" onclick="guiTuDong('Vì sao tôi cứ chuyển từ video này sang video khác?')">🔄 Lướt liên tục</button>
+                            <button class="suggest-btn" onclick="guiTuDong('Làm sao để tập trung học tốt hơn khi điện thoại ở gần?')">🎯 Tăng tập trung</button>
+                            <button class="suggest-btn" onclick="guiTuDong('Việc xem nội dung số có thể ảnh hưởng đến việc học như thế nào?')">📚 Học tập</button>
+                            <button class="suggest-btn" onclick="guiTuDong('Làm sao kiểm soát thời gian sử dụng điện thoại?')">⏰ Kiểm soát thời gian</button>
+                        </div>
+                    </div>
+                    <div class="chat-tools">
+                        <button class="btn btn-sm" onclick="taoHoiThoaiMoi()">＋Hội thoại mới</button>
+                        <button class="btn btn-sm" onclick="moLichSuMobile()">Lịch sử</button>
+                        <button class="btn btn-sm" onclick="lamMoiAI()">Làm mới</button>
+                    </div>
+                    <div class="chat-input-bar">
+                        <div class="input-wrap">
+                            <textarea class="chat-input" id="nhapCauHoi" placeholder="Nhập câu hỏi... (Enter = Gửi, Shift+Enter = Xuống dòng)" rows="1"></textarea>
+                            <button class="send-btn" id="nutGui" onclick="guiCauHoi()">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="modalCaiDat" class="modal-backdrop" onclick="dongCaiDat(event)">
+        <div class="settings-modal" onclick="event.stopPropagation()">
+            <div class="settings-head">
+                <h3>⚙️ Thiết lập BrainCare</h3>
+                <button class="close-btn" onclick="dongCaiDat()">×</button>
+            </div>
+            <label class="setting-row"><span>🌙 Chế độ tối</span><input type="checkbox" id="darkMode" onchange="doiGiaoDien()"></label>
+            <label class="setting-row"><span>🔔 Thông báo nhắc nhật ký</span><input type="checkbox" id="notifyMode"></label>
+            <div class="setting-row column"><span>👤 Tên hiển thị</span><input id="tenNguoiDung" placeholder="Ví dụ: Minh"></div>
+            <button class="btn btn-primary" onclick="luuCaiDat()">Lưu cài đặt</button><button class="btn btn-sm" onclick="dangXuat()" style="margin-top:10px">Đăng xuất</button>
+            <p class="privacy-note">🔒 Nhật ký, thử thách và lịch sử chat được lưu trong bộ nhớ trình duyệt trên thiết bị này. Hãy xuất sao lưu nếu cần; xóa dữ liệu trình duyệt có thể làm mất dữ liệu.</p>
+        </div>
+    </div>
+    <footer>© 2026 BrainCare</footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        const CSDL_NK='nhatKyData', CSDL_TT='thuThachData', CSDL_CHAT='braincareChat', CSDL_SETTINGS='braincareSettings';
+        const CSDL_TK='braincareAccounts', CSDL_SESSION='braincareSession';
+        let dangTraLoi=false, tamTrangThai=null, timer=null, timerSeconds=1500, timerRunning=false, timerMode='focus', taiKhoanHienTai=null, aiPlusMode=true;
+        const $=id=>document.getElementById(id);
+        function keyTheoTaiKhoan(khoa){return taiKhoanHienTai?`bc_${taiKhoanHienTai.user}_${khoa}`:khoa}
+        function layDuLieu(khoa, fallback=[]){try{return JSON.parse(localStorage.getItem(keyTheoTaiKhoan(khoa))||JSON.stringify(fallback))}catch{return fallback}}
+        function luuDuLieu(khoa,duLieu){localStorage.setItem(keyTheoTaiKhoan(khoa),JSON.stringify(duLieu))}
+        function layDuLieuToanCuc(khoa,fallback=[]){try{return JSON.parse(localStorage.getItem(khoa)||JSON.stringify(fallback))}catch{return fallback}}
+        function luuDuLieuToanCuc(khoa,duLieu){localStorage.setItem(khoa,JSON.stringify(duLieu))}
+        function danhSachTaiKhoan(){return layDuLieuToanCuc(CSDL_TK,[])}
+        function esc(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+        function markdown(v=''){
+            let x=esc(v);
+            x=x.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`(.+?)`/g,'<code>$1</code>');
+            x=x.replace(/\n/g,'<br>');
+            return x;
+        }
+
+        function toggleMenu(){
+    const menu=document.getElementById('mainMenu');
+    const btn=document.getElementById('menuToggle');
+    if(!menu||!btn)return;
+    const open=menu.classList.toggle('mobile-open');
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    btn.setAttribute('aria-label',open?'Đóng menu':'Mở menu');
+    btn.textContent=open?'✕':'☰';
+}
+
+function capNhatBangDieuKhienHomNay(){
+    try{
+        const ten=taiKhoanHienTai?.name||taiKhoanHienTai?.user||'bạn';
+        const el=$('loiChaoHomNay'); if(el) el.textContent=`🎯 Hôm nay, ${ten} muốn tiến bộ một chút chứ?`;
+        const d=layTrangThaiThuThach();
+        const completed=Array.isArray(d.completed)?d.completed.length:0;
+        const pct=Math.round(completed/21*100);
+        if($('chuoiNgay')) $('chuoiNgay').textContent=`🔥 Chuỗi ${completed} ngày`;
+        if($('phanTram21')) $('phanTram21').textContent=pct+'%';
+        if($('thanhTienDo21')) $('thanhTienDo21').style.width=pct+'%';
+        const nv=$('nhiemVuHomNay');
+        if(nv){
+            if(!d.startDate) nv.textContent='Bắt đầu thử thách 21 ngày và nhận nhiệm vụ đầu tiên.';
+            else { const today=ngayHienTaiLocal(); const current=Math.min(21,Math.max(1,ngayKhacNhau(d.startDate,today)+1)); nv.textContent=current>=21?'🎉 Hôm nay là ngày cuối! Hãy hoàn thành hành trình.':`Ngày ${current}: mở thử thách để xem mục tiêu hôm nay.`; }
+        }
+    }catch(e){}
+}
+
+function moBanDoXaoNhan(){
+    const target=document.getElementById('banDoXaoNhan');
+    if(!target){ alert('Không tìm thấy phần Bản đồ tác nhân. Em hãy tải lại trang hoặc mở lại file BrainCare.'); return; }
+    // Đảm bảo khu vực công cụ đang hiển thị trước khi cuộn tới bản đồ.
+    const parent=document.getElementById('bo-cong-cu');
+    if(parent){ parent.classList.add('active'); }
+    target.style.scrollMarginTop='90px';
+    try { target.scrollIntoView({behavior:'auto', block:'start'}); }
+    catch(e){ target.scrollIntoView(true); }
+    // Fallback cho một số trình duyệt nhúng không xử lý scrollIntoView ổn định.
+    setTimeout(()=>{ try { window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.pageYOffset - 90)); } catch(e){} }, 80);
+}
+
+function hienTrang(id){
+    if(id==='trang-chu') setTimeout(capNhatBangDieuKhienHomNay,0);
+    const menu=document.getElementById('mainMenu');
+    const btn=document.getElementById('menuToggle');
+    if(menu)menu.classList.remove('mobile-open');
+    if(btn){btn.textContent='☰';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-label','Mở menu');}
+            if(!taiKhoanHienTai)return;
+            document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+            $(id)?.classList.add('active');
+            document.querySelectorAll('.menu a').forEach(a=>a.classList.remove('active'));
+            document.querySelector(`.menu a[href="#${id}"]`)?.classList.add('active');
+            document.querySelector('.menu')?.classList.remove('open');
+            if(id==='nhat-ky'){ $('ngayNhap').valueAsDate=new Date(); hienDanhSachNhatKy(); }
+            if(id==='dashboard') capNhatThongKe();
+            if(id==='thu-thach') veLuoiNgay();
+            if(id==='bo-cong-cu'){veKeHoachHocTap();veBanDoXaoNhan();}
+            if(id==='chat'){taiLichSuChat(); setTimeout(()=>{$('khungChat').scrollTop=$('khungChat').scrollHeight},50)}
+        }
+
+        $('danhGiaForm').addEventListener('submit',e=>{
+            e.preventDefault();
+            const ids=['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'];
+            const score=ids.reduce((t,id)=>t+Number($(id).value),0);
+            const box=$('ketQua'),td=$('tieuDeKQ'),nd=$('noiDungKQ');
+            box.style.display='block'; box.className='result-box';
+            let cls,title,msg;
+            if(score<=10){cls='result-good';title='✅ Ít điểm cần lưu ý theo bảng tự phản ánh';msg='Câu trả lời hiện cho thấy ít khó khăn được ghi nhận trong các mục này. Bạn vẫn nên cân nhắc bối cảnh và tiếp tục theo dõi nếu cần.'}
+            else if(score<=20){cls='result-warning';title='🟡 Có vài thói quen nên quan sát thêm';msg='Hãy chọn 1–2 thay đổi nhỏ, ví dụ tắt thông báo trong phiên học hoặc đặt điện thoại ngoài tầm với, rồi quan sát xem điều gì phù hợp với bạn.'}
+            else if(score<=30){cls='result-danger';title='🟠 Nhiều mục đáng để xem lại';msg='Hãy xem câu trả lời nào gây khó khăn nhất và thử một kế hoạch thực tế trong tuần tới. Điểm này không chứng minh điện thoại là nguyên nhân.'}
+            else{cls='result-danger';title='🔴 Nên ưu tiên hỗ trợ và điều chỉnh';msg='Nếu các khó khăn này kéo dài hoặc ảnh hưởng đáng kể đến học tập, giấc ngủ hay sinh hoạt, hãy trao đổi với người lớn đáng tin cậy hoặc chuyên gia phù hợp.'}
+            box.classList.add(cls);td.textContent=title;nd.textContent=`Điểm tự phản ánh: ${score}/40. ${msg} Đây là công cụ tự quan sát, không phải chẩn đoán và chưa được xác nhận là thang đo chuẩn hóa.`;
+            luuDuLieu('lastAssessment',{score,date:new Date().toISOString(),version:'self-reflection-v2'});
+        });
+
+        document.querySelectorAll('.mood-btn').forEach(b=>b.onclick=()=>{
+            document.querySelectorAll('.mood-btn').forEach(x=>x.classList.remove('active'));
+            b.classList.add('active');tamTrangThai=b.dataset.mood;
+        });
+
+        function luuNhatKy(){
+            const ngay=$('ngayNhap').value;
+            if(!ngay){alert('Vui lòng chọn ngày!');return}
+            const ds=layDuLieu(CSDL_NK).filter(x=>x.ngay!==ngay);
+            ds.push({id:Date.now(),ngay,tamTrangThai,gioHoc:Math.max(0,Number($('gioHoc').value)||0),gioGiaiTri:Math.max(0,Number($('gioGiaiTri').value)||0),ghiChu:$('ghiChu').value.trim()});
+            ds.sort((a,b)=>b.ngay.localeCompare(a.ngay));luuDuLieu(CSDL_NK,ds);congDiem('diary',5,ngay);
+            $('ghiChu').value='';$('gioHoc').value='';$('gioGiaiTri').value='';
+            document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));tamTrangThai=null;
+            hienDanhSachNhatKy();alert('✅ Đã lưu nhật ký!');
+        }
+        function xoaNhatKy(ngay){
+            if(!confirm(`Xóa nhật ký ngày ${ngay}?`))return;
+            luuDuLieu(CSDL_NK,layDuLieu(CSDL_NK).filter(x=>x.ngay!==ngay));hienDanhSachNhatKy();capNhatThongKe();
+        }
+        function hienDanhSachNhatKy(){
+            const ds=layDuLieu(CSDL_NK),khung=$('danhSachNhatKy');
+            if(!ds.length){khung.innerHTML='<p style="text-align:center;color:#9ca3af;padding:20px">Chưa có nhật ký nào.</p>';return}
+            khung.innerHTML=ds.map(b=>`<div class="journal-entry">
+                <button class="delete-entry" onclick="xoaNhatKy('${esc(b.ngay)}')">Xóa</button>
+                <div class="entry-top"><span class="entry-date">${esc(b.ngay)}</span><span class="entry-mood">${esc(b.tamTrangThai||'—')}</span></div>
+                <div class="entry-meta"><span>📚 Học: ${Number(b.gioHoc).toFixed(1)} giờ</span><span>📺 Giải trí: ${Number(b.gioGiaiTri).toFixed(1)} giờ</span></div>
+                ${b.ghiChu?`<div class="entry-note">${esc(b.ghiChu)}</div>`:'<div style="color:#9ca3af;font-style:italic">Chưa có ghi chú</div>'}
+            </div>`).join('');
+        }
+        function xoaDuLieu(){
+            localStorage.removeItem(keyTheoTaiKhoan(CSDL_NK));localStorage.removeItem(keyTheoTaiKhoan(CSDL_TT));
+            hienDanhSachNhatKy();veLuoiNgay();capNhatThongKe();alert(' Đã xóa dữ liệu nhật ký và thử thách.');
+        }
+
+        function capNhatDashboardNangCao(){
+            try{
+                const ds=layDuLieu(CSDL_NK,[]).slice().sort((a,b)=>String(a.ngay).localeCompare(String(b.ngay)));
+                const safeNum=v=>Number.isFinite(Number(v))?Number(v):0;
+                const tongHoc=ds.reduce((s,x)=>s+safeNum(x.gioHoc),0), tongGiaiTri=ds.reduce((s,x)=>s+safeNum(x.gioGiaiTri),0);
+                const d=layTrangThaiThuThach(), completed=Array.isArray(d.completed)?d.completed.length:0, pct=Math.round(completed/21*100);
+                const set=(id,v)=>{const e=$(id);if(e)e.textContent=v};
+                set('dashSoNhatKy',ds.length); set('dashTongGioHoc',tongHoc.toFixed(1)+'h'); set('dashTongGioGiaiTri',tongGiaiTri.toFixed(1)+'h'); set('dashTienDo21',pct+'%');
+                set('dash21Text',completed+'/21 ngày'); const bar=$('dash21Bar');if(bar)bar.style.width=pct+'%';
+                set('dashStatus',!d.startDate?'Chưa bắt đầu':completed>=21?'Hoàn thành 21 ngày':completed>=14?'Đang tiến bộ':completed>=7?'Đang duy trì':'Đang khởi động');
+                let score='Chưa có';
+                try{const a=layDuLieu(CSDL_SETTINGS,{}); if(a&&a.lastAssessment?.score!==undefined)score=String(a.lastAssessment.score)+'/40'; else {const raw=localStorage.getItem(keyTheoTaiKhoan('lastAssessment')); if(raw){const aa=JSON.parse(raw);if(aa?.score!==undefined)score=String(aa.score)+'/40';}}}catch(e){}
+                set('dashAssessment',score);
+                const chart=$('dashBieuDo7Ngay');
+                if(chart){
+                    const b7=ds.slice(-7);
+                    if(!b7.length)chart.innerHTML='<div class="dash-empty" style="width:100%">Chưa có dữ liệu 7 ngày.</div>';
+                    else{const max=Math.max(...b7.map(x=>Math.max(safeNum(x.gioHoc),safeNum(x.gioGiaiTri))),1);chart.innerHTML=b7.map(x=>{const h=Math.max(2,safeNum(x.gioHoc)/max*175),g=Math.max(2,safeNum(x.gioGiaiTri)/max*175);return `<div class="dash-bar-col"><div class="dash-bar-pair"><div class="dash-bar study" title="Học ${safeNum(x.gioHoc)} giờ" style="height:${h}px"></div><div class="dash-bar fun" title="Giải trí ${safeNum(x.gioGiaiTri)} giờ" style="height:${g}px"></div></div><small>${esc(String(x.ngay||'').slice(5))}</small></div>`}).join('')}
+                }
+                const recent=$('dashRecent');
+                if(recent){const rows=ds.slice(-5).reverse();recent.innerHTML=rows.length?rows.map(x=>`<div class="dash-recent-row"><div class="dash-recent-main"><strong>${esc(x.ngay||'')}</strong><small>${esc(x.tamTrangThai||'Chưa chọn trạng thái')}</small></div><div class="dash-recent-meta">📚 ${safeNum(x.gioHoc)}h học<br>📱 ${safeNum(x.gioGiaiTri)}h giải trí</div></div>`).join(''):'<div class="dash-empty">Chưa có nhật ký.</div>'}
+            }catch(err){console.warn('Dashboard:',err)}
+        }
+
+        function capNhatThongKe(){
+            const ds=layDuLieu(CSDL_NK).sort((a,b)=>a.ngay.localeCompare(b.ngay));
+            $('tongNgay').textContent=ds.length;
+            if(!ds.length){$('tbHoc').textContent='0 giờ';$('tbGiaiTri').textContent='0 giờ';$('xuHuong').textContent='—';$('nhanXet').textContent='Chưa có đủ dữ liệu. Hãy ghi nhật ký hàng ngày.';$('bieuDo').innerHTML='';capNhatDashboardNangCao();return}
+            const avgH=ds.reduce((t,x)=>t+Number(x.gioHoc),0)/ds.length,avgG=ds.reduce((t,x)=>t+Number(x.gioGiaiTri),0)/ds.length;
+            $('tbHoc').textContent=avgH.toFixed(1)+' giờ';$('tbGiaiTri').textContent=avgG.toFixed(1)+' giờ';
+            let trend='Ổn định';
+            if(ds.length>=3){
+                const mid=Math.floor(ds.length/2),a=ds.slice(0,mid),b=ds.slice(mid);
+                const ah=a.reduce((t,x)=>t+x.gioHoc,0)/a.length,bh=b.reduce((t,x)=>t+x.gioHoc,0)/b.length;
+                const ag=a.reduce((t,x)=>t+x.gioGiaiTri,0)/a.length,bg=b.reduce((t,x)=>t+x.gioGiaiTri,0)/b.length;
+                if(bh>ah*1.05&&bg<ag*0.95)trend='📈 Cải thiện'; else if(bh<ah*.95&&bg>ag*1.05)trend='📉 Cần chú ý';
+            }
+            $('xuHuong').textContent=trend;
+            $('nhanXet').textContent=avgH>=2&&avgG<=2?'✅ Phân bổ thời gian hiện khá cân bằng. Hãy duy trì đều đặn.':avgG>2?'💡 Thời gian giải trí đang khá cao so với mục tiêu của ứng dụng; thử giảm từng bước.':'💡 Bạn có thể tăng các phiên học tập tập trung ngắn và đều đặn.';
+            const b7=ds.slice(-7),max=Math.max(...b7.map(x=>Math.max(x.gioHoc,x.gioGiaiTri)),1);
+            $('bieuDo').innerHTML=b7.map(x=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:190px">
+                <div title="Học ${x.gioHoc}h" style="width:42%;height:${x.gioHoc/max*150}px;background:linear-gradient(180deg,#667eea,#764ba2);border-radius:4px 4px 0 0"></div>
+                <div title="Giải trí ${x.gioGiaiTri}h" style="width:42%;height:${x.gioGiaiTri/max*150}px;background:linear-gradient(180deg,#f97316,#fb923c);border-radius:4px 4px 0 0"></div>
+                <small style="font-size:10px;color:#9ca3af">${esc(x.ngay.slice(5))}</small></div>`).join('');
+            capNhatDashboardNangCao();
+        }
+
+        function ngayHienTaiLocal(){const d=new Date();const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+        const PHIEN_BAN_THU_THACH=4;
+        const NHIEM_VU_21=[
+            ['🔎','Quan sát thói quen số','Xem lại hôm nay bạn thường mở ứng dụng nào nhất và vì sao.'],
+            ['🌅','Bắt đầu buổi sáng không lướt video','Dành 15 phút sau khi thức dậy trước khi mở mạng xã hội hoặc video ngắn.'],
+            ['⏱️','Tập trung 25 phút','Học hoặc làm một việc trong 25 phút, để điện thoại ngoài tầm với.'],
+            ['📖','Đọc nội dung dài 15 phút','Đọc sách, tài liệu hoặc một bài viết dài thay cho nội dung lướt nhanh.'],
+            ['🔕','Tắt một thông báo gây xao nhãng','Chọn một ứng dụng không cần thiết và tắt thông báo trong hôm nay.'],
+            ['🍽️','Một bữa ăn không màn hình','Cất điện thoại trong một bữa ăn để chú ý đến món ăn và người xung quanh.'],
+            ['🪞','Nhìn lại tuần đầu tiên','Xác định một thói quen số có ích và một điều bạn muốn thay đổi.'],
+            ['📚','Một phiên học không gián đoạn','Học 30 phút, không chuyển sang mạng xã hội trong phiên đó.'],
+            ['🚶','Thay 15 phút lướt bằng vận động','Đi bộ, giãn cơ hoặc vận động nhẹ thay cho thời gian lướt không chủ đích.'],
+            ['🌙','Tạo khoảng nghỉ trước khi ngủ','Đặt điện thoại xa giường và dành 15 phút cuối trước khi ngủ không xem video ngắn.'],
+            ['🧹','Dọn lại nguồn nội dung','Bỏ theo dõi hoặc ẩn một nguồn nội dung khiến bạn mất tập trung.'],
+            ['📵','Nghỉ mạng xã hội 30 phút','Chọn một khoảng 30 phút trong ngày không mở mạng xã hội.'],
+            ['🎯','Chia việc học thành hai chặng','Thử hai phiên tập trung ngắn, có nghỉ giữa phiên.'],
+            ['📝','Nhìn lại tuần thứ hai','Ghi một điều dễ hơn và một điều vẫn còn khó khi quản lý thời gian số.'],
+            ['🧭','Mở ứng dụng có mục đích','Trước khi mở một ứng dụng, tự hỏi mình vào đó để làm gì.'],
+            ['🌄','Giữ buổi sáng tỉnh táo','Tránh video ngắn trong 15 phút đầu sau khi thức dậy.'],
+            ['🎨','Làm một hoạt động ngoại tuyến','Dành 20 phút cho sở thích không cần màn hình nếu điều kiện cho phép.'],
+            ['💬','Có thời gian trò chuyện trực tiếp','Dành ít nhất 15 phút trò chuyện với người thân hoặc bạn bè mà không vừa xem điện thoại.'],
+            ['📱','Sắp xếp màn hình chính','Đưa ứng dụng học tập/công cụ hữu ích lên trước và giảm sự nổi bật của ứng dụng gây xao nhãng.'],
+            ['🧠','Tập trung sâu theo khả năng','Chọn một nhiệm vụ quan trọng và tập trung 30 phút, điều chỉnh phù hợp sức mình.'],
+            ['🏁','Tổng kết hành trình','Chọn hai thói quen bạn muốn tiếp tục duy trì sau thử thách.']
+        ];
+        function trangThaiThuThachMoi(noticeOldProgress=false){return {challengeVersion:PHIEN_BAN_THU_THACH,startDate:null,completed:[],tasksByDay:{},reflections:{},noticeOldProgress}}
+        function layTrangThaiThuThach(){
+            let d=layDuLieu(CSDL_TT,null);
+            if(!d||typeof d!=='object'||Array.isArray(d)||d.challengeVersion!==PHIEN_BAN_THU_THACH){
+                // Phiên bản cũ tự điểm danh khi mở ứng dụng nên không thể coi là ngày hoàn thành thật.
+                // Chỉ khởi tạo lại tiến độ thử thách; nhật ký và tài khoản không bị xóa.
+                d=trangThaiThuThachMoi(true);luuDuLieu(CSDL_TT,d);
+            }
+            if(!Array.isArray(d.completed))d.completed=[];
+            d.completed=[...new Set(d.completed.filter(n=>Number.isInteger(n)&&n>=1&&n<=21))].sort((a,b)=>a-b);
+            if(!d.tasksByDay||typeof d.tasksByDay!=='object'||Array.isArray(d.tasksByDay))d.tasksByDay={};
+            if(!d.reflections||typeof d.reflections!=='object'||Array.isArray(d.reflections))d.reflections={};
+            return d;
+        }
+        function ngayKhacNhau(a,b){const x=new Date(a+'T00:00:00'),y=new Date(b+'T00:00:00');return Math.floor((y-x)/86400000)}
+        function ngayThuThachHienTai(d=layTrangThaiThuThach()){
+            if(!d.startDate)return 0;
+            return ngayKhacNhau(d.startDate,ngayHienTaiLocal())+1;
+        }
+        function batDauThuThach(){
+            const d=layTrangThaiThuThach();
+            if(d.startDate&&!confirm('Bắt đầu lại sẽ xóa tiến độ thử thách 21 ngày hiện tại. Nhật ký cá nhân vẫn được giữ. Bạn có muốn tiếp tục?'))return;
+            const fresh=trangThaiThuThachMoi();fresh.startDate=ngayHienTaiLocal();luuDuLieu(CSDL_TT,fresh);veLuoiNgay();capNhatBangDieuKhienHomNay();
+        }
+        function datLaiThuThach(){
+            if(!confirm('Bắt đầu lại sẽ xóa check-in, nhiệm vụ và phản hồi của thử thách hiện tại. Nhật ký cá nhân vẫn được giữ. Tiếp tục?'))return;
+            const fresh=trangThaiThuThachMoi();fresh.startDate=ngayHienTaiLocal();luuDuLieu(CSDL_TT,fresh);veLuoiNgay();capNhatBangDieuKhienHomNay();
+        }
+        function luuNhiemVu21(checked){
+            const d=layTrangThaiThuThach(),day=ngayThuThachHienTai(d);
+            if(day<1||day>21||d.completed.includes(day))return;
+            const key=String(day),wasDone=!!d.tasksByDay[key];
+            d.tasksByDay[key]=!!checked;luuDuLieu(CSDL_TT,d);
+            // Chỉ cộng điểm nhiệm vụ khi check-in hợp lệ; không cộng điểm khi chỉ bật/tắt ô.
+            veLuoiNgay();
+        }
+        function luuPhanHoi21(){
+            const d=layTrangThaiThuThach(),day=ngayThuThachHienTai(d);
+            if(day<1||day>21||d.completed.includes(day))return;
+            const rating=$('mucTapTrung21')?.value||'',note=$('ghiChu21')?.value||'';
+            d.reflections[String(day)]={rating,note:note.slice(0,250)};luuDuLieu(CSDL_TT,d);
+            capNhatStatuCheckin21();
+        }
+        function capNhatStatuCheckin21(){
+            const d=layTrangThaiThuThach(),day=ngayThuThachHienTai(d);
+            if(day<1||day>21||d.completed.includes(day))return;
+            const done=!!d.tasksByDay[String(day)],note=($('ghiChu21')?.value||'').trim(),hasReflection=note.length>=10;
+            const btn=$('nutCheckin21');if(btn)btn.disabled=!(done&&hasReflection);
+            const status=$('trangThaiCheckin21');if(status)status.textContent=!done?'Hãy thực hiện nhiệm vụ rồi đánh dấu hoàn thành.':!hasReflection?`Bạn đã đánh dấu nhiệm vụ. Hãy mô tả việc đã làm (còn ${Math.max(0,10-note.length)} ký tự để đủ tối thiểu 10 ký tự).`:'Đã đủ điều kiện tự check-in: nhiệm vụ đã đánh dấu và có mô tả. Chỉ xác nhận nếu đúng với việc bạn đã làm.';
+        }
+        function checkInNgay21(){
+            const d=layTrangThaiThuThach(),day=ngayThuThachHienTai(d);
+            if(day<1||day>21){alert('Thử thách chưa bắt đầu hoặc đã kết thúc.');return}
+            if(d.completed.includes(day)){alert('Bạn đã check-in ngày hôm nay rồi.');return}
+            if(!d.tasksByDay[String(day)]){alert('Hãy đánh dấu nhiệm vụ sau khi thực sự thực hiện.');return}
+            const rating=$('mucTapTrung21')?.value||'',note=($('ghiChu21')?.value||'').trim();
+            if(note.length<10){alert('Hãy mô tả ngắn việc bạn đã thực hiện (ít nhất 10 ký tự) trước khi check-in.');$('ghiChu21')?.focus();return}
+            d.reflections[String(day)]={rating,note:note.slice(0,250)};d.completed.push(day);d.completed.sort((a,b)=>a-b);luuDuLieu(CSDL_TT,d);
+            congDiem('task',5,`${d.startDate}-${day}`);congDiem('day',10,`${d.startDate}-${day}`);veLuoiNgay();capNhatBangDieuKhienHomNay();
+        }
+        function veLuoiNgay(){
+            const d=layTrangThaiThuThach(),khung=$('luoiNgay');if(!khung)return;khung.innerHTML='';
+            const day=ngayThuThachHienTai(d),inRange=day>=1&&day<=21,finished=!!d.startDate&&day>21;
+            $('nutBatDau21').style.display=d.startDate?'none':'inline-flex';$('nutDatLai21').style.display=d.startDate?'inline-flex':'none';
+            for(let i=1;i<=21;i++){
+                const o=document.createElement('div'),checked=d.completed.includes(i),isToday=i===day,missed=!!d.startDate&&i<day&&!checked,locked=!d.startDate||i>day;
+                o.className='day-cell'+(checked?' checked':'')+(isToday?' today':'')+(missed?' missed':'')+(locked?' locked':'');
+                o.textContent=checked?'✓':(missed?'×':String(i));
+                o.title=checked?`Ngày ${i}: đã check-in`:missed?`Ngày ${i}: chưa check-in`:(isToday?`Ngày ${i}: hôm nay`:`Ngày ${i}: chưa đến`);
+                khung.appendChild(o);
+            }
+            $('soNgayDat').textContent=d.completed.length;$('tienDo').style.width=(d.completed.length/21*100)+'%';
+            if(!d.startDate){$('thongTin21').textContent=d.noticeOldProgress?'Cần bắt đầu lại thử thách: phiên bản trước tự điểm danh khi mở ứng dụng nên không thể xác nhận ngày nào thực sự hoàn thành. Tài khoản và nhật ký của bạn vẫn được giữ nguyên.':'Bạn chưa bắt đầu thử thách. Khi sẵn sàng, hãy bắt đầu và làm nhiệm vụ đầu tiên.';hienNhiemVuNgay();return}
+            if(finished)$('thongTin21').textContent=`Bạn đã đi hết khung thời gian 21 ngày. Có ${d.completed.length}/21 ngày được bạn xác nhận check-in. Bạn có thể xem lại kết quả hoặc bắt đầu lại.`;
+            else $('thongTin21').textContent=`Ngày ${day}/21 · Bắt đầu: ${d.startDate} · Đã check-in ${d.completed.length}/21 ngày. ${d.completed.includes(day)?'Hôm nay đã được ghi nhận.':'Hoàn thành nhiệm vụ rồi tự xác nhận check-in.'}`;
+            hienNhiemVuNgay();dongBoDiemThuThach();capNhatHanhTrinh();
+        }
+
+
+        // ===== BƯỚC 2: ĐIỂM HÀNH TRÌNH & NHIỆM VỤ CÁ NHÂN =====
+        const CSDL_DIEM='braincareJourneyPoints';
+        function layDiemHanhTrinh(){const d=layDuLieu(CSDL_DIEM,null);return d&&typeof d==='object'?d:{points:0,days:[],diary:[],focus:0};}
+        function luuDiemHanhTrinh(d){luuDuLieu(CSDL_DIEM,d);capNhatHanhTrinh();}
+        function congDiem(loai,giaTri,ma){const d=layDiemHanhTrinh();if(loai==='day'){d.days=d.days||[];if(d.days.includes(ma))return false;d.days.push(ma)}if(loai==='diary'){d.diary=d.diary||[];if(d.diary.includes(ma))return false;d.diary.push(ma)}if(loai==='task'){d.tasksAwarded=d.tasksAwarded||[];if(d.tasksAwarded.includes(ma))return false;d.tasksAwarded.push(ma)}if(loai==='focus')d.focus=(d.focus||0)+1;d.points=(d.points||0)+giaTri;luuDiemHanhTrinh(d);return true}
+        function capNhatHanhTrinh(){const d=layDiemHanhTrinh();const el=$('diemHanhTrinh');if(el)el.textContent=d.points||0;const b=$('huyHieuList');if(!b)return;const badges=[['🌱','Khởi động', (d.points||0)>=10],['🔥','3 ngày liên tiếp',(d.days||[]).length>=3],['📚','Người ghi chép',(d.diary||[]).length>=3],['⏱️','Tập trung',(d.focus||0)>=3],['🏆','21 ngày',(d.days||[]).length>=21]];b.innerHTML=badges.map(x=>`<span class="badge-item ${x[2]?'dat':''}">${x[0]} ${x[1]}</span>`).join('')}
+        function hienNhiemVuNgay(){
+            const d=layTrangThaiThuThach(),day=ngayThuThachHienTai(d),box=$('nhiemVuNgay'),t=$('nhiemVuNgayText');
+            const valid=day>=1&&day<=21,done=valid&&!!d.tasksByDay[String(day)],checked=valid&&d.completed.includes(day),mission=valid?NHIEM_VU_21[day-1]:null;
+            if(!valid){if(box)box.innerHTML='<div class="nv-item"><strong>🌱 Sẵn sàng bắt đầu?</strong><span>Hãy bắt đầu thử thách để nhận nhiệm vụ đầu tiên.</span></div>';if(t)t.textContent=day>21?'Khung thời gian 21 ngày đã kết thúc. Bạn có thể xem lại hoặc bắt đầu lại.':'Mỗi ngày một bước nhỏ. Hãy bắt đầu khi sẵn sàng.';$('nutCheckin21').disabled=true;$('nutCheckin21').textContent='✓ Xác nhận check-in hôm nay';$('trangThaiCheckin21').textContent='Bắt đầu thử thách để ghi nhận tiến độ.';$('phanHoi21').style.display='none';return}
+            if(box)box.innerHTML=`<label class="nv-item mission-check"><input type="checkbox" id="hoanThanhNhiemVu21" ${done?'checked':''} ${done||checked?'disabled':''} onchange="luuNhiemVu21(this.checked)" style="width:20px;height:20px;flex-shrink:0;margin:2px 8px 0 0"><span><strong>${mission[0]} ${mission[1]}</strong><span>${mission[2]}</span></span></label>`;
+            if(t)t.textContent=`Ngày ${day}/21 — ${checked?'Bạn đã check-in ngày này.':done?'Nhiệm vụ đã được đánh dấu; hãy xác nhận check-in.':'Đọc nhiệm vụ và chỉ đánh dấu khi bạn đã thực hiện.'}`;
+            $('phanHoi21').style.display=checked?'none':'block';
+            const reflection=d.reflections[String(day)]||{};if($('mucTapTrung21'))$('mucTapTrung21').value=reflection.rating||'';if($('ghiChu21'))$('ghiChu21').value=reflection.note||'';
+            const note=(reflection.note||'').trim(),hasReflection=note.length>=10;
+            $('nutCheckin21').disabled=!done||checked||!hasReflection;$('nutCheckin21').textContent=checked?'✓ Đã check-in hôm nay':'✓ Xác nhận check-in hôm nay';
+            $('trangThaiCheckin21').textContent=checked?'Ngày này đã được ghi nhận; bạn không thể check-in lần thứ hai.':!done?'Chỉ đánh dấu nhiệm vụ sau khi bạn thực sự thực hiện.':!hasReflection?'Hãy mô tả việc đã làm (ít nhất 10 ký tự) để bật check-in.':'Đã đủ điều kiện tự check-in. Chỉ xác nhận nếu mô tả đúng với việc bạn đã làm.';
+        }
+        function dongBoDiemThuThach(){const d=layTrangThaiThuThach();(d.completed||[]).forEach(n=>congDiem('day',10,`${d.startDate||''}-${n}`));}
+
+        // ===== BẢN ĐỒ TÁC NHÂN XAO NHÃNG =====
+        const CSDL_XAO_NHANG='braincareDistractionMap';
+        const NHAN_XAO_NHANG={shortvideo:'Video ngắn / lướt liên tục',notification:'Thông báo / tin nhắn',phonehabit:'Tự động mở điện thoại',multitask:'Nhiều tab / đa nhiệm',procrastination:'Khó bắt đầu / trì hoãn',noise:'Tiếng ồn / môi trường',tired:'Mệt mỏi / buồn ngủ',other:'Nguyên nhân khác'};
+        const GOI_Y_XAO_NHANG={
+            shortvideo:'Thử đặt điện thoại ngoài tầm tay trong một phiên học và tắt tự phát video. Khi nghỉ, đặt giờ kết thúc rõ ràng thay vì lướt không giới hạn.',
+            notification:'Bật chế độ tập trung hoặc tắt thông báo không cần thiết trong một phiên học; giữ lại cuộc gọi khẩn cấp nếu bạn cần.',
+            phonehabit:'Trước khi mở điện thoại, tự hỏi “Mình định làm việc gì?”. Nếu không có mục đích cụ thể, quay lại nhiệm vụ đang làm và để điện thoại xa hơn.',
+            multitask:'Chỉ mở tài liệu cần dùng cho một nhiệm vụ. Ghi việc khác vào giấy để xử lý sau, thay vì chuyển tab liên tục.',
+            procrastination:'Thu nhỏ nhiệm vụ thành bước chỉ mất 5 phút, ví dụ làm câu đầu tiên hoặc đọc một trang. Bắt đầu ngắn quan trọng hơn chờ có động lực.',
+            noise:'Nếu có thể, đổi sang chỗ yên tĩnh hơn hoặc dùng âm thanh nền ổn định ở mức vừa phải; chia bài thành từng đoạn ngắn.',
+            tired:'Thử nghỉ ngắn, uống nước và kiểm tra giấc ngủ. Nếu mệt kéo dài hoặc ảnh hưởng rõ đến sinh hoạt, hãy trao đổi với người lớn tin cậy.',
+            other:'Quan sát thêm vài lần và ghi cụ thể điều gì xảy ra trước lúc mất tập trung. Chọn một thay đổi nhỏ có thể thử an toàn.'
+        };
+        function layBanDoXaoNhan(){const d=layDuLieu(CSDL_XAO_NHANG,[]);return Array.isArray(d)?d:[]}
+        function ghiNhanXaoNhan(e){e.preventDefault();const d=layBanDoXaoNhan();d.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),date:ngayHienTaiLocal(),cause:$('distractionCause').value,impact:Number($('distractionImpact').value),moment:$('distractionMoment').value,duration:$('distractionDuration').value,note:($('distractionNote').value||'').trim().slice(0,240)});luuDuLieu(CSDL_XAO_NHANG,d.slice(0,300));$('distractionNote').value='';veBanDoXaoNhan();}
+        function veBanDoXaoNhan(){
+            const d=layBanDoXaoNhan(),summary=$('distractionSummary');if(!summary)return;
+            $('distractionCount').textContent=`📍 ${d.length} lần ghi nhận`;
+            $('distractionDays').textContent=`📆 ${new Set(d.map(x=>x.date)).size} ngày quan sát`;
+            if(!d.length){summary.textContent='Chưa có dữ liệu. Hãy ghi nhận một lần xao nhãng để bắt đầu tìm mẫu lặp lại.';$('distractionSuggestion').innerHTML='';$('distractionHistory').innerHTML='';return}
+            const counts={};d.forEach(x=>{if(!counts[x.cause])counts[x.cause]={count:0,impact:0};counts[x.cause].count++;counts[x.cause].impact+=Number(x.impact)||0});
+            const sorted=Object.entries(counts).sort((a,b)=>b[1].count-a[1].count||b[1].impact-a[1].impact),top=sorted[0],avg=(top[1].impact/top[1].count).toFixed(1);
+            summary.innerHTML=`Tác nhân được ghi nhận nhiều nhất hiện tại là <strong>${esc(NHAN_XAO_NHANG[top[0]]||'Nguyên nhân khác')}</strong> (${top[1].count}/${d.length} lần; mức ảnh hưởng trung bình ${avg}/3). Đây mới là mô tả dữ liệu bạn nhập, chưa đủ để kết luận nguyên nhân gây mất tập trung.`;
+            $('distractionSuggestion').innerHTML=`<p><strong>🪴 Một bước nhỏ để thử:</strong> ${esc(GOI_Y_XAO_NHANG[top[0]]||GOI_Y_XAO_NHANG.other)}</p><p><strong>Gợi ý quan sát:</strong> tiếp tục ghi nhận trong vài ngày để xem mẫu này có lặp lại không; thử thay đổi một yếu tố mỗi lần để dễ tự đánh giá.</p>`;
+            $('distractionHistory').innerHTML='<h4 style="margin:16px 0 6px">Lần ghi nhận gần đây</h4>'+d.slice(0,5).map(x=>`<div class="distraction-record"><div><strong>${esc(NHAN_XAO_NHANG[x.cause]||'Nguyên nhân khác')}</strong><br><small>${esc(x.date)} · Ảnh hưởng ${Number(x.impact)||1}/3 · ${esc(({study:'Tự học / làm bài',class:'Trong giờ học','before-sleep':'Trước khi ngủ',break:'Giờ nghỉ',other:'Bối cảnh khác'})[x.moment]||'')}</small>${x.note?`<div style="margin-top:4px;font-size:13px">${esc(x.note)}</div>`:''}</div></div>`).join('');
+        }
+        function xoaBanDoXaoNhan(){if(!confirm('Xóa toàn bộ dữ liệu bản đồ tác nhân xao nhãng đã ghi trên tài khoản này?'))return;luuDuLieu(CSDL_XAO_NHANG,[]);veBanDoXaoNhan()}
+        function xuatBanDoXaoNhan(){const d=layBanDoXaoNhan();if(!d.length){alert('Chưa có dữ liệu để xuất.');return}const rows=[['Ngày','Tác nhân','Mức ảnh hưởng','Bối cảnh','Thời gian','Ghi chú'],...d.map(x=>[x.date,NHAN_XAO_NHANG[x.cause]||x.cause,x.impact,({study:'Tự học / làm bài',class:'Trong giờ học','before-sleep':'Trước khi ngủ',break:'Giờ nghỉ',other:'Khác'})[x.moment]||x.moment,({under5:'Dưới 5 phút', '5to15':'5–15 phút','15to30':'15–30 phút',over30:'Trên 30 phút',unknown:'Không rõ'})[x.duration]||x.duration,x.note||''])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='BrainCare_ban_do_xao_nhang.csv';a.click();URL.revokeObjectURL(url)}
+
+        // ===== KẾ HOẠCH HỌC TẬP CÁ NHÂN =====
+        const CSDL_KE_HOACH='braincareStudyPlan';
+        function layKeHoachHocTap(){const d=layDuLieu(CSDL_KE_HOACH,[]);return Array.isArray(d)?d:[]}
+        function luuKeHoachHocTap(d){luuDuLieu(CSDL_KE_HOACH,d);veKeHoachHocTap()}
+        function themNhiemVuHoc(e){
+            e.preventDefault();const input=$('plannerTitle'),title=(input?.value||'').trim();
+            if(title.length<2){alert('Hãy nhập một nhiệm vụ học tập cụ thể.');input?.focus();return}
+            const d=layKeHoachHocTap();d.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),title:title.slice(0,120),subject:$('plannerSubject').value,priority:$('plannerPriority').value,done:false,created:ngayHienTaiLocal()});
+            luuKeHoachHocTap(d);input.value='';input.focus();
+        }
+        function doiTrangThaiNhiemVuHoc(id,checked){const d=layKeHoachHocTap(),item=d.find(x=>x.id===id);if(!item)return;item.done=!!checked;luuKeHoachHocTap(d)}
+        function xoaNhiemVuHoc(id){if(!confirm('Bạn có muốn xóa nhiệm vụ này khỏi kế hoạch?'))return;luuKeHoachHocTap(layKeHoachHocTap().filter(x=>x.id!==id))}
+        function chonNhiemVuTapTrung(id){const item=layKeHoachHocTap().find(x=>x.id===id);if(!item)return;const el=$('focusCurrentTask');if(el)el.textContent='🎯 Phiên này: '+item.title;const target=$('phongHocTapTrung');if(target)target.scrollIntoView({behavior:'smooth',block:'start'})}
+        function veKeHoachHocTap(){
+            const d=layKeHoachHocTap(),list=$('plannerList');if(!list)return;const done=d.filter(x=>x.done).length;
+            $('plannerTotal').textContent=`📌 ${d.length} việc`;$('plannerDone').textContent=`✅ ${done} hoàn thành`;$('plannerLeft').textContent=`📝 ${d.length-done} còn lại`;
+            if(!d.length){list.innerHTML='<div class="planner-empty">Bạn chưa thêm nhiệm vụ nào. Hãy bắt đầu bằng một việc nhỏ nhé!</div>';return}
+            const priorityLabel={high:'Quan trọng',normal:'Bình thường',low:'Có thể sau'};
+            list.innerHTML=d.map(x=>`<div class="planner-task ${x.done?'done':''}"><input type="checkbox" aria-label="Đánh dấu hoàn thành: ${esc(x.title)}" ${x.done?'checked':''} onchange="doiTrangThaiNhiemVuHoc('${x.id}',this.checked)"><div class="planner-task-main"><div class="planner-task-title">${esc(x.title)} <span class="priority-tag ${x.priority==='low'?'low':''}">${priorityLabel[x.priority]||'Bình thường'}</span></div><div class="planner-task-meta">${esc(x.subject||'Chung')} · Thêm ngày ${esc(x.created||'')}</div></div><button class="btn btn-sm" type="button" onclick="chonNhiemVuTapTrung('${x.id}')">Học việc này</button><button class="btn btn-sm" type="button" aria-label="Xóa nhiệm vụ" onclick="xoaNhiemVuHoc('${x.id}')">🗑️</button></div>`).join('');
+        }
+
+        // Timer
+        function renderTimer(){$('timerDisplay').textContent=`${String(Math.floor(timerSeconds/60)).padStart(2,'0')}:${String(timerSeconds%60).padStart(2,'0')}`}
+        function batDauHenGio(){
+            if(timerRunning)return;timerRunning=true;
+            timer=setInterval(()=>{if(timerSeconds>0){timerSeconds--;renderTimer()}else{clearInterval(timer);timerRunning=false;
+                if(timerMode==='focus'){timerMode='break';timerSeconds=300;$('timerMode').textContent='Nghỉ 5 phút';alert('🎉 Hoàn thành một phiên tập trung! Đã chuyển sang nghỉ 5 phút.');congDiem('focus',15,'focus-'+Date.now())}
+                else{timerMode='focus';timerSeconds=1500;$('timerMode').textContent='Tập trung';alert('⏰ Hết giờ nghỉ. Sẵn sàng cho phiên tiếp theo!')}renderTimer()}},1000);
+        }
+        function tamDungHenGio(){clearInterval(timer);timerRunning=false}
+        function datLaiHenGio(){clearInterval(timer);timerRunning=false;timerMode='focus';timerSeconds=1500;$('timerMode').textContent='Tập trung';renderTimer()}
+
+        // BrainCare AI v3
+        // Ưu tiên hiểu ý định, đối tượng, mục tiêu và ngữ cảnh trước khi chọn câu trả lời.
+        // Chạy local, không gửi dữ liệu ra ngoài.
+
+        const aiKB = [
+            {topic:'brainrot', label:'Brain Rot', aliases:['brain rot','brainrot','thoi nao','thối não'], keywords:['brain rot','brainrot','thoi nao','thối não','bieu hien','biểu hiện','khai niem','khái niệm']},
+            {topic:'shortvideo', label:'nội dung số ngắn', aliases:['video ngan','video ngắn','short video','shorts','reels','tiktok','noi dung ngan','nội dung ngắn'], keywords:['video ngan','video ngắn','short','reels','shorts','tiktok','noi dung ngan','nội dung ngắn']},
+            {topic:'scroll', label:'thói quen lướt nội dung liên tục', aliases:['luot lien tuc','lướt liên tục','chuyen video','chuyển video','cuon lien tuc','cuộn liên tục','scroll'], keywords:['lướt','chuyen','chuyển','cuon','cuộn','video nay sang video khac']},
+            {topic:'focus', label:'khả năng tập trung', aliases:['tap trung','tập trung','mat tap trung','mất tập trung','focus','xao nhang','xao nhãng'], keywords:['tap trung','tập trung','xao nhang','xao nhãng','chu y','chú ý']},
+            {topic:'study', label:'việc học', aliases:['hoc tap','học tập','hoc bai','học bài','bai tap','bài tập'], keywords:['hoc','học','bai','bài','nhiem vu','nhiệm vụ','on tap','ôn tập']},
+            {topic:'time', label:'kiểm soát thời gian sử dụng thiết bị', aliases:['thoi gian su dung','thời gian sử dụng','screen time','gio su dung','giờ sử dụng'], keywords:['thoi gian','thời gian','screen time','bao nhieu gio','bao nhiêu giờ','gio moi ngay','giờ mỗi ngày']},
+            {topic:'control', label:'khả năng kiểm soát hành vi sử dụng', aliases:['kho dung','khó dừng','dung lai','dừng lại','xem lau hon','xem lâu hơn','qua thoi gian','quá thời gian'], keywords:['kho dung','khó dừng','dung','dừng','lau hon','lâu hơn','du dinh','dự định']},
+            {topic:'healthy', label:'thói quen số lành mạnh', aliases:['thoi quen so','thói quen số','su dung lanh manh','sử dụng lành mạnh','can bang','cân bằng'], keywords:['lanh manh','lành mạnh','can bang','cân bằng','thoi quen','thói quen']},
+            {topic:'stats', label:'dữ liệu BrainCare', aliases:['thong ke','thống kê','du lieu','dữ liệu','tien do','tiến độ','nhat ky','nhật ký','ket qua','kết quả'], keywords:['du lieu','dữ liệu','thong ke','thống kê','nhat ky','nhật ký','ket qua','kết quả']},
+            {topic:'challenge', label:'thử thách 21 ngày', aliases:['21 ngay','21 ngày','thu thach','thử thách','challenge'], keywords:['21 ngay','21 ngày','thu thach','thử thách','tien do','tiến độ']},
+            {topic:'greeting', label:'chào hỏi', aliases:['xin chao','xin chào','chao','chào','hello','hi'], keywords:[]},
+            {topic:'thanks', label:'cảm ơn', aliases:['cam on','cảm ơn','thanks'], keywords:[]},
+            {topic:'syndrome', label:'hội chứng & biểu hiện', aliases:['hoi chung','hội chứng','trieu chung','triệu chứng','dau hieu','dấu hiệu','bieu hien','biểu hiện'], keywords:['hoi chung','hội chứng','trieu chung','triệu chứng','dau hieu','dấu hiệu','bieu hien','biểu hiện','nguyen nhan','nguyên nhân','chan doan','chẩn đoán']},
+            {topic:'cvs', label:'Hội chứng thị giác máy tính', aliases:['hoi chung thi giac may tinh','hội chứng thị giác máy tính','computer vision syndrome','digital eye strain','moi mat do man hinh','mỏi mắt do màn hình'], keywords:['computer vision syndrome','digital eye strain','mo mat','mỏi mắt','kho mat','khô mắt','nhuc dau','nhức đầu','man hinh','màn hình']},
+            {topic:'gaming', label:'gaming disorder', aliases:['gaming disorder','roi loan choi game','rối loạn chơi game','nghien game','nghiện game'], keywords:['gaming disorder','choi game','chơi game','nghien game','nghiện game','icd 11','icd-11']},
+            {topic:'mentalhealth', label:'sức khỏe tâm thần tuổi vị thành niên', aliases:['suc khoe tam than','sức khỏe tâm thần','tam ly','tâm lý','mental health'], keywords:['suc khoe tam than','sức khỏe tâm thần','tam ly','tâm lý','lo au','lo âu','buon','buồn','ap luc','áp lực']},
+            {topic:'sleep', label:'giấc ngủ và thiết bị số', aliases:['giac ngu','giấc ngủ','ngu khong ngon','ngủ không ngon','thieu ngu','thiếu ngủ'], keywords:['giac ngu','giấc ngủ','ngu','ngủ','thieu ngu','thiếu ngủ','bedtime']},
+            {topic:'evidence', label:'bằng chứng và nghiên cứu', aliases:['nghien cuu','nghiên cứu','bang chung','bằng chứng','evidence','co so khoa hoc','cơ sở khoa học'], keywords:['nghien cuu','nghiên cứu','bang chung','bằng chứng','evidence','icd 11','icd-11','who','nhi khoa']}
+        ];
+
+        // Kho kiến thức hội chứng/thuật ngữ. ID là mã nội bộ của BrainCare, không phải mã chẩn đoán.
+        const SYNDROME_DB={
+            gaming:{id:'BC-SYN-GD-001',name:'Gaming disorder',status:'Được WHO phân loại trong ICD-11'},
+            cvs:{id:'BC-SYN-CVS-001',name:'Computer Vision Syndrome (Digital Eye Strain)',status:'Thuật ngữ chuyên môn mô tả nhóm vấn đề mắt/thị giác liên quan sử dụng màn hình'},
+            brainrot:{id:'BC-TERM-BR-001',name:'Brain Rot',status:'Thuật ngữ phổ biến trên Internet, không phải chẩn đoán ICD-11'}
+        };
+
+        // Mã nguồn nội bộ: dùng để hiển thị nguồn tham khảo rõ ràng trong câu trả lời.
+        // Đây là ID của BrainCare, không phải mã chẩn đoán y khoa.
+        const AI_SOURCES = {
+            'WHO-DIG-2026': {name:'WHO — Digital environments and mental health', url:'https://www.who.int/teams/mental-health-and-substance-use/promotion-prevention/digital-environments-and-mental-health/'},
+            'WHO-SM-2024': {name:'WHO Europe — Teens, screens and mental health', url:'https://www.who.int/europe/news-room/25-09-2024-teens--screens-and-mental-health'},
+            'WHO-GD-ICD11': {name:'WHO — Gaming disorder / ICD-11', url:'https://www.who.int/standards/classifications/frequently-asked-questions/gaming-disorder'},
+            'WHO-CDDR-2024': {name:'WHO — ICD-11 Clinical descriptions and diagnostic requirements', url:'https://www.who.int/publications/i/item/9789240077263'},
+            'WHO-YOUTH-2025': {name:'WHO Europe — Digital determinants of youth mental health', url:'https://www.who.int/europe/publications/i/item/WHO-EURO-2025-12187-51959-79685'},
+            'AOA-CVS': {name:'American Optometric Association — Computer Vision Syndrome / Digital Eye Strain', url:'https://www.aoa.org/healthy-eyes/eye-and-vision-conditions/computer-vision-syndrome'},
+            'NIMH-CAMH': {name:'NIMH — Child and Adolescent Mental Health', url:'https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health'}
+        };
+        function hienNguon(ids=[]){
+            const valid=[...new Set(ids)].map(id=>AI_SOURCES[id]&&{id,...AI_SOURCES[id]}).filter(Boolean);
+            if(!valid.length)return '';
+            return `\n\n📚 **Nguồn tham khảo**\n`+valid.map(x=>`• **${x.id}** — [${x.name}](${x.url})`).join('\n');
+        }
+        function laCauChuyenSau(q){
+            const n=cleanAI(q);
+            return /(co che|cơ chế|tai sao|tại sao|vi sao|vì sao|nguyen nhan|nguyên nhân|nghien cuu|nghiên cứu|bang chung|bằng chứng|evidence|icd|chan doan|chẩn đoán|phan biet|phân biệt|giai thich sau|giải thích sâu|chi tiet|chi tiết|chuyen sau|chuyên sâu)/i.test(n);
+        }
+        function buildDeepAnswer(q,best,type){
+            const n=cleanAI(q);
+            if(best?.topic==='brainrot') return aiNoiChuyen(`Ừ, nếu hỏi sâu thì mình tách **“Brain Rot”** ra khỏi chẩn đoán y khoa trước nha. Đây là một cách gọi phổ biến trên Internet, không phải tên một rối loạn được dùng như một chẩn đoán trong ICD-11.\n\nĐiểm đáng phân tích là **hành vi phía sau cái tên**: bn có thể đang xem nội dung ngắn liên tục, khó dừng, bị gián đoạn việc học hoặc cảm thấy khó quay lại nhiệm vụ. Những biểu hiện đó có nhiều nguyên nhân khác nhau nên ko thể nhìn 1–2 dấu hiệu rồi kết luận “bn bị Brain Rot”.\n\nNếu bn muốn tìm nguyên nhân, mình sẽ hỏi theo chuỗi: **hành vi → hoàn cảnh → mức độ kiểm soát → ảnh hưởng đến học/ngủ/sinh hoạt → kéo dài bao lâu**. Cách này sát thực tế hơn việc tự gắn nhãn.`)+hienNguon(['WHO-DIG-2026','WHO-SM-2024']);
+            if(best?.topic==='gaming') return aiNoiChuyen(`Nếu bn đang hỏi về **Gaming disorder**, đây là chỗ cần phân biệt rõ. WHO đưa Gaming disorder vào ICD-11 như một tình trạng liên quan đến kiểu chơi game có **mất kiểm soát**, ưu tiên chơi game hơn các hoạt động khác và tiếp tục chơi dù đã có hậu quả tiêu cực. Để được xem là rối loạn, mức độ phải đủ nghiêm trọng để gây ảnh hưởng đáng kể đến hoạt động cá nhân, gia đình, xã hội, học tập hoặc công việc; WHO cũng nêu rằng kiểu biểu hiện này thường được thấy trong khoảng **ít nhất 12 tháng**.\n\nVì vậy, “chơi game nhiều” tự nó chưa đồng nghĩa với Gaming disorder. Nếu bn kể tình huống cụ thể, mình có thể cùng bn tách từng tiêu chí ra để hiểu, chứ ko tự chẩn đoán.`)+hienNguon(['WHO-GD-ICD11','WHO-CDDR-2024']);
+            if(best?.topic==='cvs') return aiNoiChuyen(`Ừ, cái này mình giải thích sâu được nha. **Computer Vision Syndrome (CVS)**, còn gọi là **digital eye strain**, là cách AOA mô tả một nhóm vấn đề về mắt/thị giác liên quan đến việc sử dụng máy tính và thiết bị số kéo dài. Các biểu hiện thường được nhắc tới gồm **mỏi mắt, khô mắt, nhìn mờ, đau đầu và đau cổ/vai**.
+
+Điểm quan trọng là ko nên nhìn mỗi “thời gian màn hình”. Độ chói/ánh sáng, khoảng cách nhìn, tư thế và một số vấn đề thị lực chưa được điều chỉnh cũng có thể góp phần. Vì vậy nếu bn hỏi “mình có bị hội chứng này ko?”, mình sẽ ko kết luận qua chat; mình sẽ hỏi **triệu chứng nào, xuất hiện lúc nào, dùng màn hình bao lâu và có giảm khi nghỉ mắt ko**. Nếu triệu chứng kéo dài hoặc ảnh hưởng rõ, nên báo người lớn tin cậy và đi khám mắt.
+
+📌 **ID kiến thức:** ${SYNDROME_DB.cvs.id}
+**Trạng thái:** ${SYNDROME_DB.cvs.status}`)+hienNguon(['AOA-CVS']);
+            if(best?.topic==='mentalhealth') return aiNoiChuyen(`Với sức khỏe tâm thần ở tuổi học sinh, mình sẽ ko vội quy mọi chuyện cho điện thoại hay mạng xã hội. WHO lưu ý mối quan hệ giữa công nghệ và sức khỏe tâm thần có thể **hai chiều**: khó khăn tâm lý có thể làm việc dùng công nghệ tăng lên, đồng thời một số trải nghiệm số cũng có thể làm vấn đề nặng thêm.\n\nKhi phân tích một trường hợp, mình sẽ nhìn **thời gian + hoàn cảnh + cảm xúc + giấc ngủ + học tập + quan hệ với người khác + mức độ ảnh hưởng đến sinh hoạt**. Nếu các biểu hiện kéo dài nhiều tuần/tháng hoặc làm việc học, sinh hoạt hay quan hệ bị ảnh hưởng rõ, nên nói với người lớn tin cậy và tìm hỗ trợ chuyên môn.`)+hienNguon(['WHO-YOUTH-2025','NIMH-CAMH']);
+            if(best?.topic==='sleep') return aiNoiChuyen(`Nếu bn hỏi sâu về giấc ngủ, mình sẽ ko chỉ nhìn “bao nhiêu giờ dùng điện thoại”. Quan trọng hơn là **dùng vào thời điểm nào, có làm giờ ngủ bị đẩy muộn không, và sau đó ban ngày có buồn ngủ hoặc khó tập trung không**. WHO Europe ghi nhận problematic social media use có liên quan với ngủ ít hơn và giờ đi ngủ muộn hơn trong dữ liệu thanh thiếu niên, nhưng đây là mối liên hệ chứ không nên hiểu thành một nguyên nhân duy nhất cho từng người.\n\nVì vậy, BrainCare nên dùng dữ liệu nhật ký để tìm mẫu lặp lại thay vì kết luận từ một ngày.`)+hienNguon(['WHO-SM-2024','WHO-YOUTH-2025']);
+            if(best?.topic==='evidence'||type==='definition'&&/icd/.test(n)) return aiNoiChuyen(`Nếu bn muốn câu trả lời có cơ sở, mình sẽ ưu tiên **nguồn y tế/tổ chức chuyên môn**, nói rõ dữ liệu thuộc nhóm nào và tránh biến một mối liên hệ thành kết luận nguyên nhân. Ví dụ, ICD-11 của WHO là hệ thống phân loại bệnh và tình trạng sức khỏe; tài liệu CDDR mô tả các yêu cầu chẩn đoán trong bối cảnh lâm sàng. Vì vậy, BrainCare chỉ nên dùng các nguồn này để **giải thích khái niệm và tiêu chí**, ko dùng vài câu chat để tự chẩn đoán.`)+hienNguon(['WHO-CDDR-2024','WHO-GD-ICD11','WHO-DIG-2026']);
+            if(best?.topic==='focus') return aiNoiChuyen(`Nếu bn hỏi sâu “vì sao mình khó tập trung”, mình sẽ ko nhảy ngay tới kết luận là do video ngắn. Mình sẽ tách thành 4 lớp: **(1) nhiệm vụ đang làm có khó/nhàm ko, (2) môi trường có tín hiệu gây xao nhãng ko, (3) cơ thể đang thiếu ngủ/mệt/căng thẳng ko, (4) bn có thói quen chuyển tác vụ liên tục ko**.\n\nSau đó mới xem dữ liệu BrainCare của bn có mẫu nào lặp lại. Như vậy câu trả lời sẽ dựa trên tình huống của bn thay vì một nhãn chung.`)+hienNguon(['WHO-DIG-2026','WHO-YOUTH-2025']);
+            return null;
+        }
+
+        const AI_TOPIC_INFO = {
+            brainrot:{label:'Brain Rot', answer:`“Brain Rot” là thuật ngữ phổ biến trên Internet dùng để nói về việc tiếp nhận quá nhiều nội dung trực tuyến ít giá trị hoặc ít thử thách. Trong BrainCare, khái niệm này được tiếp cận thông qua các thói quen và biểu hiện liên quan đến việc sử dụng nội dung số; đây không phải công cụ chẩn đoán bệnh lý.`},
+            shortvideo:{label:'nội dung số ngắn', answer:`Nội dung số ngắn thường là các video có thời lượng ngắn, được thiết kế để người xem có thể nhanh chóng chuyển từ nội dung này sang nội dung khác. BrainCare quan tâm đến cách bạn sử dụng dạng nội dung này, chứ không mặc định rằng video ngắn luôn có hại.`},
+            scroll:{label:'thói quen lướt nội dung liên tục', answer:`Việc liên tục chuyển từ video này sang video khác có thể trở thành một thói quen sử dụng nội dung số. BrainCare có thể giúp bạn nhận diện thói quen đó và theo dõi xem nó có ảnh hưởng đến thời gian học hoặc khả năng tập trung của bạn hay không.`},
+            focus:{label:'khả năng tập trung', answer:`Khả năng tập trung trong học tập liên quan đến việc duy trì sự chú ý vào nhiệm vụ, hạn chế xao nhãng và tiếp tục nhiệm vụ sau khi bị gián đoạn. Nhiều yếu tố có thể ảnh hưởng đến tập trung, nên BrainCare không quy mọi khó khăn về tập trung cho một nguyên nhân duy nhất.`},
+            study:{label:'việc học', answer:`BrainCare tập trung vào cách thói quen sử dụng nội dung số có thể liên quan đến hoạt động học tập. Bạn có thể theo dõi thời gian học, khả năng duy trì nhiệm vụ và việc sử dụng điện thoại trong lúc học để quan sát xu hướng của chính mình.`},
+            time:{label:'kiểm soát thời gian sử dụng thiết bị', answer:`Bạn có thể bắt đầu bằng việc đặt một khoảng thời gian rõ ràng cho việc học và giải trí, giảm thông báo không cần thiết và để điện thoại ngoài tầm với trong phiên học. Điều quan trọng là theo dõi kết quả thực tế thay vì cố thay đổi quá nhiều thứ cùng lúc.`},
+            control:{label:'khả năng kiểm soát hành vi sử dụng', answer:`Nếu bạn thường dùng nội dung số lâu hơn dự định, hãy thử đặt điểm dừng trước khi bắt đầu, dùng hẹn giờ và để ý thời điểm bạn thường mở điện thoại theo thói quen. Mục tiêu là tăng khả năng chủ động lựa chọn, không phải tự trách bản thân.`},
+            healthy:{label:'thói quen số lành mạnh', answer:`Một thói quen số lành mạnh có thể bao gồm thời gian sử dụng có chủ đích, khoảng thời gian không dùng thiết bị khi học, nghỉ ngơi hợp lý và lựa chọn nội dung phù hợp. Bạn có thể dùng nhật ký và thử thách 21 ngày của BrainCare để theo dõi sự thay đổi.`},
+            challenge:{label:'thử thách 21 ngày', answer:`Thử thách 21 ngày của BrainCare nhằm giúp bạn theo dõi việc duy trì một thói quen số theo từng ngày. Mục tiêu là xây dựng tính nhất quán, không phải đạt điểm hoàn hảo.`},
+            syndrome:{label:'hội chứng & biểu hiện', answer:`“Hội chứng” là tên gọi cho một nhóm dấu hiệu/biểu hiện thường xuất hiện cùng nhau; còn một triệu chứng riêng lẻ chưa đủ để kết luận một hội chứng hay bệnh lý. BrainCare có thể giúp bn hiểu khái niệm, xem các biểu hiện thường được mô tả và gợi ý cách theo dõi an toàn, nhưng ko thể chẩn đoán chỉ qua chat. Nếu bn đang có triệu chứng đáng lo hoặc kéo dài, nên trao đổi với phụ huynh/người lớn tin cậy và nhân viên y tế.`},
+            gaming:{label:'Gaming disorder', answer:`WHO mô tả Gaming disorder trong ICD-11 là kiểu chơi game có mất kiểm soát, tăng mức ưu tiên cho việc chơi và tiếp tục chơi dù có hậu quả tiêu cực; mức độ phải gây ảnh hưởng đáng kể đến hoạt động cá nhân, gia đình, xã hội hoặc học tập/công việc.`},
+            mentalhealth:{label:'sức khỏe tâm thần tuổi vị thành niên', answer:`Sức khỏe tâm thần ở tuổi vị thành niên chịu ảnh hưởng bởi nhiều yếu tố. Không nên mặc định một hành vi dùng thiết bị số là nguyên nhân duy nhất; cần nhìn cả bối cảnh, giấc ngủ, học tập, cảm xúc và mức độ ảnh hưởng đến sinh hoạt.`},
+            sleep:{label:'giấc ngủ và thiết bị số', answer:`Việc dùng mạng xã hội có vấn đề đã được WHO Europe ghi nhận có liên quan với ngủ ít hơn và giờ đi ngủ muộn hơn ở dữ liệu thanh thiếu niên, nhưng đây là mối liên hệ chứ không phải bằng chứng rằng điện thoại là nguyên nhân duy nhất ở từng người.`},
+            evidence:{label:'bằng chứng và nghiên cứu', answer:`Khi cần câu trả lời chuyên sâu, BrainCare ưu tiên phân biệt giữa dữ liệu nghiên cứu, mối liên hệ, cơ chế được đề xuất và chẩn đoán lâm sàng. Nguồn tham khảo sẽ được gắn mã ID để bn có thể mở và kiểm tra.`},
+            stats:{label:'dữ liệu BrainCare', answer:`Mình có thể phân tích những dữ liệu BrainCare đang lưu trên thiết bị của bạn như nhật ký, thời gian học, thời gian giải trí, tâm trạng và tiến độ thử thách. Mình sẽ mô tả dữ liệu hiện có thay vì tự đoán.`}
+        };
+
+        function boDau(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');}
+        function cleanAI(s){return boDau(s).replace(/[^a-z0-9\s?]/g,' ').replace(/\s+/g,' ').trim();}
+        function tu(q){return new Set(cleanAI(q).split(' ').filter(Boolean));}
+        function formatNumber(n,suffix=''){return Number.isFinite(n)?`${n.toFixed(1)}${suffix}`:'chưa có dữ liệu';}
+
+        function getAIContext(){
+            const entries=layDuLieu(CSDL_NK,[]), challenge=layDuLieu(CSDL_TT,{}), settings=layDuLieu(CSDL_SETTINGS,{}), score=layDuLieu('lastAssessment',null);
+            const avg=(field)=>{const vals=entries.map(e=>Number(e[field])).filter(Number.isFinite);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null};
+            const done=challenge&&Array.isArray(challenge.completed)?challenge.completed.length:0;
+            return {entries,challenge,settings,score,done,avgStudy:avg('hoc'),avgFun:avg('giaiTri'),avgMood:avg('tamTrang')};
+        }
+
+        function detectIntent(q){
+            const n=cleanAI(q);
+            const candidates=aiKB.map(item=>{let score=0,matched=[];
+                for(const alias of item.aliases){const a=cleanAI(alias);if(a.length>=3&&n.includes(a)){score+=a.includes(' ')?7:4;matched.push(alias)}}
+                for(const kw of item.keywords){const a=cleanAI(kw);if(a&&n.includes(a))score+=a.includes(' ')?3:1.2}
+                if(item.topic==='stats'&&(n.includes('du lieu')||n.includes('nhat ky')||n.includes('thong ke')))score+=5;
+                if(item.topic==='challenge'&&(n.includes('21 ngay')||n.includes('thu thach')))score+=5;
+                if(item.topic==='study'&&(n.includes('hoc')||n.includes('bai')))score+=1;
+                return {...item,score,matched};
+            }).sort((a,b)=>b.score-a.score);
+            return {best:candidates[0],second:candidates[1],normalized:n};
+        }
+
+        function detectQuestionType(q){const n=cleanAI(q);if(!n)return'empty';if(/^(xin chao|chao|hello|hi)( ban| braincare)?$/.test(n))return'greeting';if(/^(cam on|cam on ban|thanks)$/.test(n))return'thanks';if(/^(ok|oke|okay|uh|um|a|ah|haha|kk|dc|duoc|roi)$/.test(n))return'casual_ack';if(/^(ban dang lam gi|ban dang lam j|bn dang lam gi|bn dang lm gi|bn dang lm j|dang lam gi|dang lam j|dang lm gi|dang lm j|hom nay ban sao|hom nay bn sao|ban khoe khong|bn khoe khong|sao roi|co gi moi khong)$/.test(n))return'casual_chat';if(/^(met qua|chan qua|buon qua|ap luc qua|hom nay met|toi met|minh met|tui met)$/.test(n))return'casual_feeling';if(/^(ke chuyen di|noi chuyen voi minh|noi chuyen di|tam su voi minh|cho minh tam su|noi linh tinh di)$/.test(n))return'casual_talk';if(/\b(la gi|nghia la gi|la sao|what is)\b/.test(n))return'definition';if(/\b(vi sao|tai sao|why|nguyen nhan)\b/.test(n))return'why';if(/\b(lam sao|cach nao|nen lam gi|phai lam gi|giup toi|giup minh|how)\b/.test(n))return'howto';if(/\b(co nen|nen hay khong|co phai)\b/.test(n))return'decision';if(/\b(bao nhieu|may gio|so luong|thoi gian)\b/.test(n))return'measurement';return'general';}
+
+        function buildCasualReply(q,type,name,history=[]){
+            if(type==='casual_ack'){
+                const replies=[`Okeee 😄 Mình vẫn ở đây nha. Bn muốn nói tiếp chuyện gì thì cứ quăng sang mình.`,`Ừa 😄 Mình hiểu ý bn rồi. Cứ từ từ, ko cần viết câu hỏi quá chỉnh chu đâu.`,`Haha oke 😆 Vậy mình tiếp tục nha. Bn đang nghĩ tới chuyện gì?`,`Đc nha 😄 Bn cứ nói tự nhiên như đang chat vs 1 ng bạn thôi.`];
+                return replies[Math.floor(Math.random()*replies.length)];
+            }
+            if(type==='casual_chat')return `Mình đang ở đây “trực” để chat vs bn nè 😄 Không có việc gì đặc biệt đâu.\n\nCòn bn thì sao? Hôm nay học hành ổn ko, hay đang nghỉ xíu?`;
+            if(type==='casual_feeling')return `Nghe có vẻ hôm nay bn hơi mệt/đuối rồi 😅. Nếu chỉ muốn tám chuyện cho nhẹ đầu thì cứ nói nha, ko nhất thiết phải hỏi vấn đề học tập đâu.\n\nNếu bn muốn, kể mình nghe **hôm nay có chuyện gì làm bn mệt nhất**?`;
+            if(type==='casual_talk')return `Được chứ 😄 Mình nói chuyện bình thường vs bn luôn. Không cần lúc nào cũng phải là “câu hỏi đúng chủ đề” đâu.\n\nBn kể mình nghe 1 chuyện bất kỳ hôm nay đi — vui, chán, học hành, bạn bè hay chuyện linh tinh cũng đc.`;
+            return null;
+        }
+
+function buildStatsAnswer(ctx){
+            if(!ctx.entries.length)return`Mình chưa có đủ dữ liệu nhật ký để phân tích. Bạn hãy ghi lại một vài ngày trước, rồi mình có thể xem xu hướng thay vì đoán.`;
+            let text=`Mình đang dựa trên **${ctx.entries.length} ngày nhật ký** bạn đã lưu:\n\n• Học: **${formatNumber(ctx.avgStudy,' giờ/ngày')}**\n• Giải trí: **${formatNumber(ctx.avgFun,' giờ/ngày')}**\n• Tâm trạng: **${formatNumber(ctx.avgMood,'/5')}**\n• Thử thách 21 ngày: **${ctx.done}/21 ngày**\n`;
+            if(ctx.avgStudy!==null&&ctx.avgFun!==null){
+                if(ctx.avgFun>ctx.avgStudy*2&&ctx.avgStudy<3)text+=`\nTrong các bản ghi hiện có, thời gian giải trí cao hơn đáng kể so với thời gian học. Đây chỉ là mô tả dữ liệu, **không đủ để kết luận nguyên nhân**.`;
+                else text+=`\nBạn có thể theo dõi thêm vài ngày để xem xu hướng này thay đổi như thế nào.`;
+            }
+            return text;
+        }
+
+        function aiNoiChuyen(t){
+            // Giọng tư vấn gần gũi với học sinh: tự nhiên, dễ hiểu, viết tắt vừa phải.
+            return t
+                .replace(/Bạn có thể/g,'Bn có thể')
+                .replace(/bạn muốn/g,'bn muốn')
+                .replace(/Bạn hãy/g,'Bn thử')
+                .replace(/Nếu bạn/g,'Nếu bn')
+                .replace(/không/g,'ko')
+                .replace(/được/g,'đc')
+                .replace(/với/g,'vs')
+                .replace(/một chút/g,'1 chút')
+                .replace(/một /g,'1 ')
+                .replace(/hai /g,'2 ');
+        }
+
+        function buildAIAnswer(q){
+            const ctx=getAIContext(),{best,second}=detectIntent(q),type=detectQuestionType(q);
+            const history=layDuLieu(CSDL_CHAT,[]).filter(x=>x.role==='user').slice(-5).map(x=>x.text);
+            const name=ctx.settings.name||'bn';
+            const normalized=cleanAI(q);
+            const casual=buildCasualReply(q,type,name,history);
+            if(casual)return casual;
+            if(laCauChuyenSau(q)){
+                const deep=buildDeepAnswer(q,best,type);
+                if(deep)return deep;
+            }
+            // Ưu tiên trả lời trực tiếp các câu hỏi phổ biến trước khi rơi vào nhánh hỏi thêm.
+            // Đây là lớp bổ sung cho AI cũ: không thay thế kho kiến thức cũ.
+            if(best?.topic==='brainrot' && /bieu hien|dau hieu|trieu chung/.test(normalized)){
+                return aiNoiChuyen(`**Một số biểu hiện thường được nhắc đến khi nói về Brain Rot** gồm:
+
+• Khó duy trì sự tập trung trong những nhiệm vụ dài hoặc cần suy nghĩ.
+• Dễ chuyển từ nội dung này sang nội dung khác, đặc biệt là video ngắn.
+• Hay kiểm tra điện thoại dù ban đầu không có mục đích rõ ràng.
+• Ưu tiên nội dung ngắn, nhanh, dễ tiếp nhận hơn nội dung dài.
+• Khó bắt đầu hoặc duy trì những việc cần tập trung lâu như đọc sách, học bài.
+• Có xu hướng trì hoãn việc học để xem nội dung giải trí.
+
+⚠️ Đây là **những biểu hiện liên quan đến thói quen sử dụng nội dung số**, không phải một danh sách triệu chứng để tự chẩn đoán “bị Brain Rot”. Mỗi biểu hiện cũng có thể xuất phát từ nhiều nguyên nhân khác nhau.`);
+            }
+            if(best?.topic==='brainrot' && /la gi|nghia la gi|khai niem/.test(normalized)){
+                return aiNoiChuyen(AI_TOPIC_INFO.brainrot.answer);
+            }
+            if(best?.topic==='brainrot' && /lam sao|cach nao|nen lam gi|phai lam gi|giam|bo thoi quen|cai thien/.test(normalized)){
+                return aiNoiChuyen(`Nếu bn muốn giảm những thói quen liên quan đến nội dung số, thử bắt đầu từ vài việc nhỏ:
+
+1. Xác định lúc nào bn thường mở video ngắn theo thói quen.
+2. Đặt giới hạn thời gian trước khi bắt đầu xem.
+3. Khi học, để điện thoại xa tay và tắt thông báo không cần thiết.
+4. Thay một khoảng xem video ngắn bằng đọc sách, tài liệu hoặc hoạt động khác.
+5. Ghi nhật ký vài ngày để xem thói quen có thay đổi không.
+
+Không cần cấm điện thoại hoàn toàn. Mục tiêu là tăng khả năng **chủ động lựa chọn và dừng lại**.`);
+            }
+            if(best?.topic==='shortvideo' && /bieu hien|anh huong|tac dong|tai sao|vi sao/.test(normalized)){
+                return aiNoiChuyen(`Nội dung số ngắn không phải lúc nào cũng có hại. Điều BrainCare quan tâm là **cách sử dụng và mức độ kiểm soát**. Nếu bn liên tục chuyển video, khó dừng, dùng lâu hơn dự định hoặc khó quay lại việc học sau khi xem, đó là những dấu hiệu đáng để theo dõi.
+
+Mình sẽ không kết luận rằng video ngắn chắc chắn gây “suy giảm não bộ”. Tốt hơn là theo dõi thói quen của chính bn qua nhật ký và xem nó có đi kèm thay đổi nào trong học tập, tập trung hoặc sinh hoạt không.`);
+            }
+            if(best?.topic==='focus' && /bieu hien|dau hieu|tai sao|vi sao/.test(normalized)){
+                return aiNoiChuyen(`Khó tập trung có thể biểu hiện như: dễ bị điện thoại hoặc thông báo kéo sự chú ý, đang học phải chuyển việc liên tục, khó đọc nội dung dài, dễ bỏ dở nhiệm vụ hoặc mất nhiều thời gian mới bắt đầu học.
+
+Những biểu hiện này **không tự chứng minh nguyên nhân là Brain Rot**. Giấc ngủ, áp lực học tập, môi trường học và nhiều yếu tố khác cũng có thể liên quan.`);
+            }
+
+            const syndromeMatch=/(hoi chung|hội chứng|trieu chung|triệu chứng|dau hieu|dấu hiệu|bieu hien|biểu hiện|chan doan|chẩn đoán|computer vision syndrome|digital eye strain)/i.test(q);
+            if(best?.topic==='cvs'){const deep=buildDeepAnswer(q,best,type);if(deep)return deep;}
+            const onTopic=/(brain rot|thoi nao|thối não|video|tiktok|reels|shorts|tap trung|tập trung|hoc|học|dien thoai|điện thoại|screen time|thoi gian su dung|thời gian sử dụng|luot|lướt|thoi quen|thói quen|21 ngay|21 ngày|hoi chung|hội chứng|trieu chung|triệu chứng|dau hieu|dấu hiệu|bieu hien|biểu hiện|du lieu|dữ liệu)/i.test(q);
+            const offTopicNote=!onTopic ? `\n\n🧭 **Nhắc nhẹ:** Câu này hơi lệch khỏi trọng tâm BrainCare. Mình vẫn có thể giải thích ngắn nếu cần, nhưng để tư vấn sát hơn bn thử liên hệ nó với **tập trung, học tập, thói quen số, sức khỏe kỹ thuật số hoặc một hội chứng/biểu hiện cụ thể** nha.` : '';
+            if(syndromeMatch){
+                const base=AI_TOPIC_INFO.syndrome.answer;
+                return aiNoiChuyen(`${base}\n\nBn có thể gửi **tên hội chứng + những biểu hiện bn đang muốn hiểu + xảy ra bao lâu**. Mình sẽ phân tích theo từng ý, tránh tự kết luận.`)+offTopicNote;
+            }
+            if(type==='empty')return `Ừm, bn nói rõ câu hỏi thêm 1 chút nha 😄 Ví dụ: “Mình học 30 phút là mất tập trung, giờ nên làm sao?”`;
+            if(type==='greeting')return `Chào ${name} 👋 Mình đây! Cứ hỏi thoải mái nha. Nếu bn đang gặp vấn đề trong học tập, dùng điện thoại, khó tập trung hay Brain Rot thì kể tình huống cụ thể cho mình, mình sẽ cùng bn gỡ từng bước.`;
+            if(type==='thanks')return `Không có gì nha 😄 Cần gì cứ hỏi tiếp. Mình sẽ cố giải thích theo kiểu dễ hiểu, ko nói quá học thuật đâu.`;
+            if(!best||best.score<3){
+                if(aiPlusMode&&history.length)return `Mình chưa bắt đúng ý bn lắm 😅 Bn thử nói theo 3 ý này nha:
+
+• Bn đang gặp chuyện gì?
+• Nó thường xảy ra lúc nào?
+• Bn muốn thay đổi điều gì?
+
+Ví dụ: “Mình hay mở TikTok lúc học, xem 10 phút thành 1 tiếng. Mình muốn tập trung hơn.”
+
+Bn nói càng cụ thể thì mình tư vấn càng sát.`;
+                return `Mình có thể hỗ trợ về **Brain Rot, video ngắn, thói quen lướt, tập trung, học tập, thời gian dùng thiết bị, thói quen số và thử thách 21 ngày** nha.
+
+Bn thử hỏi cụ thể hơn 1 chút, mình sẽ cùng bn tìm cách xử lý.`;
+            }
+            if(best.topic==='stats')return aiNoiChuyen(buildStatsAnswer(ctx))+`
+
+Nếu bn muốn, mình có thể giúp bn đọc mấy con số này theo kiểu dễ hiểu hơn.`;
+            if(best.topic==='challenge')return `Hiện bn đã hoàn thành **${ctx.done}/21 ngày** 🎯
+
+Đừng chỉ nhìn số ngày nha. Quan trọng là xem những ngày nào bn giữ thói quen tốt, ngày nào bị trượt và lý do là gì. Từ đó mình mới tìm ra cách phù hợp vs bn.`;
+            if(type==='definition'&&AI_TOPIC_INFO[best.topic])return aiNoiChuyen(AI_TOPIC_INFO[best.topic].answer)+`
+
+Nếu phần này hơi khó hiểu thì bn cứ bảo “giải thích dễ hơn”, mình nói lại theo ví dụ đời thường cho.`;
+            if(best.topic==='brainrot'&&type==='why')return `“Brain Rot” là cách gọi phổ biến trên mạng, ko phải 1 chẩn đoán y khoa nha. Việc khó tập trung có thể liên quan đến nhiều yếu tố khác nhau. BrainCare chủ yếu giúp bn quan sát thói quen dùng nội dung số, chứ ko thể kết luận nguyên nhân chỉ từ 1 câu hỏi.
+
+Nói đơn giản: mình đừng tự dán nhãn cho bản thân vội, cứ nhìn vào thói quen thực tế trước.`;
+            if(best.topic==='focus'&&type==='howto')return `Nếu bn đang khó tập trung, đừng ép bản thân học 2–3 tiếng ngay 😅 Thử kiểu này trước:
+
+1. Chọn đúng **1 việc** cần làm.
+2. Học 25 phút thôi.
+3. Để điện thoại xa tay + tắt thông báo ko cần thiết.
+4. Muốn cầm máy thì ghi nhanh ra giấy rồi quay lại học.
+5. Nghỉ 5 phút, sau đó xem mình có làm tiếp đc ko.
+
+Nếu cách này hợp, bn tăng dần thời gian sau. Quan trọng là tạo nhịp học ổn định chứ ko cần “cày” ngay từ đầu.`;
+            if(best.topic==='phone'||best.topic==='time'||best.topic==='control')return `Bn ko cần bỏ điện thoại hoàn toàn đâu. Mình thử kiểm soát nó trước nha 😄
+
+• Trước khi mở máy, tự hỏi: “Mình mở để làm gì?”
+• Đặt thời gian dùng trước.
+• Tắt thông báo ko cần thiết.
+• Lúc học thì để máy xa tay 1 chút.
+
+Nếu bn hay dùng quá giờ, ghi lại **lúc nào + đang làm gì + vì sao mở máy**. Sau vài ngày sẽ dễ thấy “điểm yếu” của mình hơn.`;
+            if(best.topic==='study')return `Nếu mục tiêu là học tốt hơn, bn đừng bắt đầu bằng “hôm nay phải học thật nhiều”. Thử đặt 1 mục tiêu nhỏ thôi, ví dụ: **làm 5 bài Toán** hoặc **học xong 1 mục**.
+
+Làm xong thì nghỉ ngắn rồi tiếp tục. Cách này dễ bắt đầu hơn và đỡ cảm giác bị ngợp.`;
+            if(best.topic==='healthy')return `Thói quen số ổn hơn ko có nghĩa là cấm bản thân dùng điện thoại nha. Ý là mình **dùng có mục đích và biết lúc nào nên dừng**.
+
+Bn có thể bắt đầu từ 1 thay đổi nhỏ mỗi ngày, theo dõi trong 21 ngày rồi xem cái gì thực sự hợp với mình.`;
+            if(best.topic==='shortvideo')return `Video ngắn rất dễ làm mình chuyển từ nội dung này sang nội dung khác liên tục. Vì vậy đừng chỉ nhìn “hôm nay dùng bao nhiêu phút”, mà để ý thêm **bn mở app bao nhiêu lần, có định dừng mà vẫn xem tiếp ko, và sau khi xem xong có khó quay lại việc đang làm ko**.`;
+            if(best.topic==='scroll')return `Nếu bn hay lướt vô thức, thử đặt **điểm dừng trước khi mở app** nha. Ví dụ: “Mình xem 10 phút rồi thoát.”
+
+Khi nhận ra mình đang lướt theo quán tính, dừng vài giây và tự hỏi: “Mình còn muốn xem thật hay chỉ đang lướt tiếp?” Câu hỏi nhỏ này khá hữu ích.`;
+            const base=AI_TOPIC_INFO[best.topic]?.answer||'Mình hiểu vấn đề bn đang hỏi rồi.';
+            return `${aiNoiChuyen(base)}
+
+💡 Nếu bn kể thêm tình huống cụ thể, mình sẽ tư vấn sát hơn chứ ko trả lời chung chung nha.${offTopicNote}`;
+        }
+
+        let hoiThoaiHienTai=null;
+        const CSDL_HOITHOAI='braincareConversations';
+        function layDanhSachHoiThoai(){
+            let list=layDuLieu(CSDL_HOITHOAI,[]);
+            if(!Array.isArray(list))list=[];
+            // Tự nâng cấp lịch sử cũ thành 1 hội thoại đầu tiên.
+            const old=layDuLieu(CSDL_CHAT,[]);
+            if(!list.length && old.length){list=[{id:'legacy-'+Date.now(),title:old.find(x=>x.role==='user')?.text?.slice(0,55)||'Hội thoại cũ',messages:old,updatedAt:Date.now()}];luuDuLieu(CSDL_HOITHOAI,list);}
+            return list;
+        }
+        function luuDanhSachHoiThoai(list){luuDuLieu(CSDL_HOITHOAI,list.slice(0,50));}
+        function taoIdHoiThoai(){return 'chat-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);}
+        function veLichSuChat(){
+            const box=$('danhSachHoiThoai');if(!box)return;
+            const q=cleanAI($('timHoiThoai')?.value||'');
+            const list=layDanhSachHoiThoai().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+            const shown=q?list.filter(c=>cleanAI(c.title||'').includes(q)||c.messages?.some(m=>cleanAI(m.text||'').includes(q))):list;
+            box.innerHTML=shown.length?shown.map(c=>`<div class="history-row"><button class="history-item ${c.id===hoiThoaiHienTai?'active':''}" onclick="moHoiThoai('${c.id}')"><strong> ${esc(c.title||'Hội thoại')}</strong><small>${c.messages?.filter(m=>m.role==='user').length||0} câu hỏi · ${new Date(c.updatedAt||Date.now()).toLocaleDateString('vi-VN')}</small></button><button class="history-delete" onclick="xoaHoiThoai('${c.id}',event)" title="Xóa hội thoại" aria-label="Xóa hội thoại">X</button></div>`).join(''):'<div class="history-empty">Chưa có hội thoại phù hợp.<br>Bn bắt đầu 1 cuộc trò chuyện mới nha 😊</div>';
+        }
+        function hienLaiTinNhan(messages){
+            const box=$('khungChat');box.innerHTML='';
+            if(!messages?.length){
+                themTinNhan('Chào bn 👋 Kể mình nghe vấn đề bn đang gặp nha. Mình sẽ cùng bn phân tích từng bước.','ai',false);
+                return;
+            }
+            messages.forEach(m=>themTinNhan(m.text,m.role,false));
+        }
+        function moHoiThoai(id){
+            const c=layDanhSachHoiThoai().find(x=>x.id===id);if(!c)return;
+            hoiThoaiHienTai=id;luuDuLieu(CSDL_CHAT,c.messages||[]);hienLaiTinNhan(c.messages||[]);veLichSuChat();$('chatHistory')?.classList.remove('mobile-open');
+        }
+        function xoaHoiThoai(id,e){
+            if(e)e.stopPropagation();
+            const c=layDanhSachHoiThoai().find(x=>x.id===id);
+            if(!c)return;
+            if(!confirm(`Xóa hội thoại “${c.title||'Hội thoại'}”?`))return;
+            let list=layDanhSachHoiThoai().filter(x=>x.id!==id);
+            if(!list.length){
+                const moi={id:taoIdHoiThoai(),title:'Hội thoại mới',messages:[],updatedAt:Date.now()};
+                list=[moi];hoiThoaiHienTai=moi.id;luuDuLieu(CSDL_CHAT,[]);hienLaiTinNhan([]);
+            }else if(hoiThoaiHienTai===id){
+                hoiThoaiHienTai=list[0].id;luuDuLieu(CSDL_CHAT,list[0].messages||[]);hienLaiTinNhan(list[0].messages||[]);
+            }
+            luuDanhSachHoiThoai(list);veLichSuChat();
+        }
+        function taoHoiThoaiMoi(){
+            const c={id:taoIdHoiThoai(),title:'Hội thoại mới',messages:[],updatedAt:Date.now()};
+            const list=layDanhSachHoiThoai();list.unshift(c);luuDanhSachHoiThoai(list);hoiThoaiHienTai=c.id;luuDuLieu(CSDL_CHAT,[]);hienLaiTinNhan([]);veLichSuChat();$('nhapCauHoi')?.focus();
+        }
+        function moLichSuMobile(){$('chatHistory')?.classList.toggle('mobile-open');veLichSuChat()}
+        function damBaoHoiThoai(){
+            let list=layDanhSachHoiThoai();
+            if(!hoiThoaiHienTai){
+                const c={id:taoIdHoiThoai(),title:'Hội thoại mới',messages:[],updatedAt:Date.now()};list.unshift(c);hoiThoaiHienTai=c.id;
+            }
+            return {list,c:list.find(x=>x.id===hoiThoaiHienTai)};
+        }
+        function dongBoHoiThoai(){
+            const {list,c}=damBaoHoiThoai();c.messages=layDuLieu(CSDL_CHAT,[]);c.updatedAt=Date.now();
+            const first=c.messages.find(m=>m.role==='user');if(first)c.title=first.text.trim().replace(/\s+/g,' ').slice(0,55);
+            luuDanhSachHoiThoai([c,...list.filter(x=>x.id!==c.id)]);veLichSuChat();
+        }
+        function lamMoiAI(){
+            if(dangTraLoi)return;
+            taoHoiThoaiMoi();
+        }
+        function layTraLoiCuaAI(q){return buildAIAnswer(q);}
+        function themTinNhan(noiDung,loai='user',save=true){
+            const div=document.createElement('div');div.className=`msg ${loai}`;
+            div.innerHTML=loai==='ai'?`<div class="msg-avatar">🧠</div><div class="msg-bubble">${markdown(noiDung)}</div>`:`<div class="msg-avatar">B</div><div class="msg-bubble">${esc(noiDung)}</div>`;
+            $('khungChat').appendChild(div);$('khungChat').scrollTop=$('khungChat').scrollHeight;
+            if(save){const h=layDuLieu(CSDL_CHAT,[]);h.push({role:loai,text:noiDung,time:new Date().toISOString()});luuDuLieu(CSDL_CHAT,h.slice(-100));dongBoHoiThoai()}
+        }
+        function taiLichSuChat(){
+            const list=layDanhSachHoiThoai();
+            if(!hoiThoaiHienTai && list.length)hoiThoaiHienTai=list[0].id;
+            if(hoiThoaiHienTai){const c=list.find(x=>x.id===hoiThoaiHienTai);luuDuLieu(CSDL_CHAT,c?.messages||[]);hienLaiTinNhan(c?.messages||[])}
+            else hienLaiTinNhan([]);
+            veLichSuChat();
+        }
+        function guiCauHoi(){
+            const input=$('nhapCauHoi'),q=input.value.trim();if(!q||dangTraLoi)return;
+            damBaoHoiThoai();dangTraLoi=true;$('nutGui').disabled=true;themTinNhan(q,'user');input.value='';
+            const typing=document.createElement('div');typing.className='msg ai';typing.id='typing';typing.innerHTML='<div class="msg-avatar">🧠</div><div class="msg-bubble"><span class="typing"><span></span><span></span><span></span></span></div>';$('khungChat').appendChild(typing);$('khungChat').scrollTop=$('khungChat').scrollHeight;
+            setTimeout(()=>{typing.remove();themTinNhan(layTraLoiCuaAI(q),'ai');dangTraLoi=false;$('nutGui').disabled=false},450+Math.random()*450);
+        }
+        $('nhapCauHoi').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();guiCauHoi()}});
+        $('nhapCauHoi').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,120)+'px'});
+
+        // Settings
+        function moCaiDat(){const st=layDuLieu(CSDL_SETTINGS,{});$('darkMode').checked=!!st.dark;$('notifyMode').checked=!!st.notify;$('tenNguoiDung').value=st.name||taiKhoanHienTai?.name||'';$('modalCaiDat').classList.add('open')}
+        function dongCaiDat(e){if(!e||e.target===$('modalCaiDat'))$('modalCaiDat').classList.remove('open')}
+        function doiGiaoDien(){document.body.classList.toggle('dark',$('darkMode').checked)}
+        function luuCaiDat(){const st={dark:$('darkMode').checked,notify:$('notifyMode').checked,name:$('tenNguoiDung').value.trim()};luuDuLieu(CSDL_SETTINGS,st);doiGiaoDien();dongCaiDat();$('accountChip').textContent='👤 '+(st.name||taiKhoanHienTai?.user||'Tài khoản');alert('✅ Đã lưu cài đặt!')}
+        function dangXuat(){if(!confirm('Đăng xuất khỏi tài khoản này?'))return;localStorage.removeItem(CSDL_SESSION);taiKhoanHienTai=null;location.reload()}
+        function doiAuthTab(tab){$('formDangNhap').classList.toggle('active',tab==='dangnhap');$('formDangKy').classList.toggle('active',tab==='dangky');$('tabDangNhap').classList.toggle('active',tab==='dangnhap');$('tabDangKy').classList.toggle('active',tab==='dangky');$('loginError').textContent='';$('regError').textContent=''}
+        function maHoaMatKhau(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
+        function vaoUngDung(acc){taiKhoanHienTai=acc;localStorage.setItem(CSDL_SESSION,acc.user);$('authGate').classList.add('hidden');const st=layDuLieu(CSDL_SETTINGS,{});document.body.classList.toggle('dark',!!st.dark);$('accountChip').textContent='👤 '+(st.name||acc.name||acc.user);veLuoiNgay();hienDanhSachNhatKy()}
+        function dangNhap(e){
+            e.preventDefault();
+            const err=$('loginError');
+            try{
+                const u=$('loginUser').value.trim().toLowerCase(),p=$('loginPass').value;
+                if(!u||!p){if(err)err.textContent='Vui lòng nhập đầy đủ tên tài khoản và mật khẩu.';return}
+                const accounts=danhSachTaiKhoan();
+                if(!Array.isArray(accounts)||accounts.length===0){if(err)err.textContent='Chưa có tài khoản trên trình duyệt này. Nếu bạn đã tạo tài khoản ở thiết bị hoặc trình duyệt khác, tài khoản đó không tự đồng bộ sang đây.';return}
+                const hash=maHoaMatKhau(p);
+                const acc=accounts.find(x=>x&&String(x.user||'').toLowerCase()===u&&String(x.pass||'')===hash);
+                if(!acc){if(err)err.textContent='Tên tài khoản hoặc mật khẩu chưa đúng. Tên tài khoản không phân biệt hoa/thường; mật khẩu phân biệt hoa/thường.';return}
+                vaoUngDung(acc);
+            }catch(error){console.error('Lỗi đăng nhập:',error);if(err)err.textContent='Không thể đọc dữ liệu tài khoản trên trình duyệt. Hãy tải lại trang hoặc tạo tài khoản mới.'}
+        }
+        function dangKy(e){e.preventDefault();const name=$('regName').value.trim(),u=$('regUser').value.trim().toLowerCase(),p=$('regPass').value,accounts=danhSachTaiKhoan();if(!/^[a-z0-9_.-]{3,20}$/.test(u)){$('regError').textContent='Tên tài khoản: 3–20 ký tự, chỉ dùng chữ không dấu, số, dấu . _ -.';return}if(accounts.some(x=>x.user===u)){$('regError').textContent='Tên tài khoản này đã tồn tại.';return}const acc={user:u,name,pass:maHoaMatKhau(p),created:Date.now()};accounts.push(acc);luuDuLieuToanCuc(CSDL_TK,accounts);taiKhoanHienTai=acc;luuDuLieu(CSDL_SETTINGS,{name,dark:false,notify:false});for(const k of [CSDL_NK,CSDL_TT,CSDL_CHAT,CSDL_HOITHOAI]){const legacy=localStorage.getItem(k);if(legacy&&!localStorage.getItem(keyTheoTaiKhoan(k)))localStorage.setItem(keyTheoTaiKhoan(k),legacy)}vaoUngDung(acc)}
+        function khoiPhucPhien(){const u=localStorage.getItem(CSDL_SESSION);if(!u)return false;const acc=danhSachTaiKhoan().find(x=>x.user===u);if(!acc){localStorage.removeItem(CSDL_SESSION);return false}vaoUngDung(acc);return true}
+
+        // Xuất nhật ký cá nhân dạng CSV để người dùng tự kiểm tra dữ liệu đã nhập.
+        // Không thêm tên tài khoản hay dữ liệu của tài khoản khác vào tệp.
+        function xuatBaoCaoCaNhanCSV(){
+            const rows=layDuLieu(CSDL_NK,[]).slice().sort((a,b)=>String(a.ngay).localeCompare(String(b.ngay)));
+            if(!rows.length){alert('Chưa có nhật ký để xuất. Hãy lưu ít nhất một ngày trước nhé.');return}
+            const cell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+            const lines=[['Ngày','Tâm trạng tự báo cáo','Thời gian học (giờ)','Thời gian giải trí (giờ)','Ghi chú'].map(cell).join(',')];
+            rows.forEach(r=>lines.push([r.ngay,r.tamTrangThai,Number(r.gioHoc)||0,Number(r.gioGiaiTri)||0,r.ghiChu].map(cell).join(',')));
+            const csv='\uFEFF'+lines.join('\r\n');
+            const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+            a.href=url;a.download=`braincare-nhat-ky-${ngayHienTaiLocal()}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+        }
+
+        // Backup / restore
+        function xuatDuLieu(){
+            const data={version:4,exportedAt:new Date().toISOString(),journal:layDuLieu(CSDL_NK),challenge:layDuLieu(CSDL_TT),chat:layDuLieu(CSDL_CHAT),conversations:layDuLieu(CSDL_HOITHOAI,[]),settings:layDuLieu(CSDL_SETTINGS)};
+            const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+            a.href=url;a.download=`braincare-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
+        }
+        function nhapDuLieu(e){
+            const file=e.target.files?.[0];if(!file)return;
+            const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!d||!Array.isArray(d.journal))throw Error();
+                if(!confirm('Nhập dữ liệu sẽ thay thế dữ liệu hiện tại. Tiếp tục?'))return;
+                luuDuLieu(CSDL_NK,d.journal);luuDuLieu(CSDL_TT,d.challenge&&typeof d.challenge==='object'&&!Array.isArray(d.challenge)?d.challenge:trangThaiThuThachMoi());luuDuLieu(CSDL_CHAT,Array.isArray(d.chat)?d.chat:[]);luuDuLieu(CSDL_SETTINGS,d.settings||{});
+                hienDanhSachNhatKy();veLuoiNgay();capNhatThongKe();alert('✅ Đã khôi phục dữ liệu!');
+            }catch{alert('❌ File sao lưu không hợp lệ.')}};reader.readAsText(file);e.target.value='';
+        }
+
+
+                capNhatHanhTrinh();hienNhiemVuNgay();
+document.addEventListener('DOMContentLoaded',()=>{
+    try{veKeHoachHocTap()}catch(e){}
+    try{veBanDoXaoNhan()}catch(e){}
+    try{renderTimer()}catch(e){}
+            setTimeout(capNhatBangDieuKhienHomNay,100);
+            $('ngayNhap').valueAsDate=new Date();renderTimer();
+            if(!khoiPhucPhien())return;
+            // Check-in is manual; opening the app never marks a challenge day complete.
+            // Keep the original welcome message when there is no chat history.
+            if(layDuLieu(CSDL_CHAT).length===0) $('khungChat').scrollTop=$('khungChat').scrollHeight;
+            hienDanhSachNhatKy();veLuoiNgay();capNhatThongKe();capNhatDashboardNangCao();
+        });
+    </script>
+
+</body>
+</html>
